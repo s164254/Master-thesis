@@ -1,8 +1,15 @@
 from curses.ascii import isdigit
 from os import path
+from matplotlib.pyplot import plot_date
 import pandas as pd
 import csv
 import math
+import scipy.stats as stats
+import statsmodels.api as sm
+import pylab
+import numpy as np
+from scipy.stats import invgauss
+from scipy.stats import norm
 
 def unique_peptides_valid_value(value):
     return (value != '1') and (isdigit(value[0]) or value[0]=='.')
@@ -11,7 +18,7 @@ def unique_peptides_valid_row(row_data):
     return any( (1 for v in row_data if unique_peptides_valid_value(v)))
 
 def label_free_quant_transform(value, unique_peptide_value):
-    return unique_peptide_value != '1' and math.log2(float(value)) or '0'
+    return isdigit(unique_peptide_value[0]) and unique_peptide_value != '1' and math.log2(float(value)) or '0'
 
 LABEL_FREE_QUANT = 'Label-Free Quant'
 UNIQUE_PEPTIDES_COL_PREFIX = 'UniquePeptides'
@@ -57,10 +64,18 @@ for row in valid_rows:
     for lfq_idx in range(idx1,idx2):
         row[lfq_idx] = label_free_quant_transform(row[lfq_idx], row[lfq_idx+unique_peptides_adder])
 
-csv_out_name = path.join(script_dir, '%s.output.csv' % (path.splitext(fname)[0],))
+# csv_out_name = path.join(script_dir, '%s.output.csv' % (path.splitext(fname)[0],))
+# with open(path.join(script_dir, csv_out_name), 'w') as csvfile:
+#     wrtr = csv.writer(csvfile, delimiter=',')
+#     wrtr.writerow(header)
+#     for row in valid_rows:
+#         wrtr.writerow(row)
 
-with open(path.join(script_dir, csv_out_name), 'w') as csvfile:
-    wrtr = csv.writer(csvfile, delimiter=',')
-    wrtr.writerow(header)
-    for row in valid_rows:
-        wrtr.writerow(row)
+plot_data = np.array([row[idx1] for row in valid_rows if row[idx1] != '0'])
+np1 = len(plot_data)+1
+rang = [r/np1 for r in range(1,len(plot_data)+1)]
+f = norm.ppf(rang,loc =0, scale = 1)
+
+pylab.plot(np.sort(plot_data),f)
+#sm.qqplot(plot_data) #, line='45')
+pylab.show()
