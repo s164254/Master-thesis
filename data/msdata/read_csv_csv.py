@@ -32,7 +32,7 @@ if path.exists(path.join(script_dir, GENE_LOOKUP_FILE)):
 
 with open(path.join(script_dir, fname)) as csvfile:
     rdr = csv.reader(csvfile, delimiter=',')
-    rows = [tuple(row) for row in rdr]
+    rows = [row for row in rdr]
 
 header = rows[0]
 data = rows[1:]
@@ -53,6 +53,14 @@ unique_peptides_adder = unique_peptides_idxs[0] - label_free_quant_idxs[0]
 idx1 = label_free_quant_idxs[0]
 idx2 = label_free_quant_idxs[-1] + 1 
 
-label_free_quant_transformed = [[label_free_quant_transform(row[lfq_idx], row[lfq_idx+unique_peptides_adder]) for lfq_idx in range(idx1,idx2)] for row in valid_rows]
+for row in valid_rows:
+    for lfq_idx in range(idx1,idx2):
+        row[lfq_idx] = label_free_quant_transform(row[lfq_idx], row[lfq_idx+unique_peptides_adder])
 
-l = len(valid_rows)
+csv_out_name = path.join(script_dir, '%s.output.csv' % (path.splitext(fname)[0],))
+
+with open(path.join(script_dir, csv_out_name), 'w') as csvfile:
+    wrtr = csv.writer(csvfile, delimiter=',')
+    wrtr.writerow(header)
+    for row in valid_rows:
+        wrtr.writerow(row)
