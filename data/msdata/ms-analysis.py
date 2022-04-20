@@ -25,6 +25,22 @@ def write_csv(csv_file_name,header,data):
         wrtr.writerow(header)
         for row in data:
             wrtr.writerow(row)
+
+def is_fold(v1,v2,n):
+    ma = max(v1,v2)
+    if ma == 0:
+        return False
+
+    mi = min(v1,v2)
+    if mi == 0:
+        return True
+
+    return ma/mi >= 2
+
+
+def is_two_fold(v1,v2):
+    return is_fold(v1,v2,2)
+
 class MsAnalysis:
     def __init__(self, csv_file_name):
         with open(path.join(script_dir, csv_file_name)) as csvfile:
@@ -52,10 +68,24 @@ class MsAnalysis:
         item1_values,item2_values = [self.item_data[item_name][attr_name] for item_name in item_names]
         return [(self.UniprotIds[i],self.Genes[i],self.ProteinDescriptions[i],item1_values[i],item2_values[i]) for i in range(len(self.Genes)) if item1_values[i]>0 and item2_values[i]>0]
 
+    def fold_change(self,item_names,attr_name):
+        item1,item2 = item_names
+        v1 = self.item_data[item1][attr_name]
+        v2 = self.item_data[item2][attr_name]
+        temp = [(i,v1[i],v2[i]) for i in range(len(self.Genes))]
+        temp = [(i,v1,v2) for i,v1,v2 in temp if is_two_fold(v1,v2)]
+        return [(self.UniprotIds[i],self.Genes[i],self.ProteinDescriptions[i],v1,v2) for i,v1,v2 in temp]
+
+        common_proteins = m.common_proteins(item_names,attr_name)
+
+        item1_values,item2_values = [self.item_data[item_name][attr_name] for item_name in item_names]
+        return [(self.UniprotIds[i],self.Genes[i],self.ProteinDescriptions[i],item1_values[i],item2_values[i]) for i in range(len(self.Genes)) if item1_values[i]>0 and item2_values[i]>0]
+
 script_dir = path.dirname(path.realpath(__file__))
 fname = 'Batch2_data.output.csv'
 
 m = MsAnalysis(path.join(script_dir, fname))
 item_names = ['M2','P2']
 common_proteins = m.common_proteins(item_names,'Label-Free Quant')
+fold_change = m.fold_change(item_names,'Label-Free Quant')
 write_csv(path.join(script_dir, 'csv.csv'),m.header[:3]+item_names,common_proteins)
