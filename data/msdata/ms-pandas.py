@@ -1,11 +1,15 @@
 from math import isnan
 from os import path
 from tkinter import font
+from matplotlib import legend
 import numpy as np
 import pandas as pd
 import re
 import fileutils as ft
 import matplotlib.pyplot as plt
+
+def get_columns_by_attr_name(item_attrs,attr_name):
+    return [(x[1],x[3]) for x in item_attrs if x[2]==attr_name]
 
 def get_column_names(item_attrs,attr_name):
     return [x[3] for x in item_attrs if x[2]==attr_name]
@@ -65,13 +69,19 @@ abundance_col_names = get_column_names(item_attrs,LABEL_FREE_QUANT)
 for abundance_col_name,  unique_peptides_col_name in zip( abundance_col_names, unique_peptides_col_names):
     filtered[abundance_col_name] = filtered.apply(lambda x: 0 if is_unique_peptides_nan(x[unique_peptides_col_name]) else x[abundance_col_name], axis=1)
 
-for sample_abundance in [get_column_name(item_attrs,sample_name,LABEL_FREE_QUANT) for sample_name in get_sample_names(item_attrs)]:
-    #filtered[sample_abundance].sort_values(ascending=0)[:10].plot(x=filtered.columns[2], y=sample_abundance, kind='bar', title=sample_abundance)
-    ax = filtered.nlargest(10, sample_abundance).set_index(filtered.columns[2]).plot(y=sample_abundance, kind='bar', rot=0)
-    #plot_df = filter_nlargest(filtered, sample_abundance, 10)
-    #plot_df.plot(x=filtered.columns[2], y=sample_abundance, kind='bar', title=sample_abundance)
-    plt.xticks(fontsize=8)
-    plt.yticks(fontsize=8)
-    #plt.title(label=sample_abundance,fontsize=8)
-    plt.show()
-    l=len(filtered)
+# plot 10 largest abundance value with x axis label = protein normalized to 1
+for sample_name, abundance_sample_colname in get_columns_by_attr_name(item_attrs,LABEL_FREE_QUANT): # loop over each sample
+    # normalize abundance sample column
+    col_max = filtered[abundance_sample_colname].max()
+    filtered[abundance_sample_colname] = filtered[abundance_sample_colname].div(col_max)
+
+    # take the 10 largestm user protein description as x axis label and make the bar plot
+    chrt = filtered.nlargest(10, abundance_sample_colname).set_index(filtered.columns[2]).plot(y=abundance_sample_colname, kind='bar', rot=0, legend=False)
+
+    # use a smaller font size than the default
+    plt.xticks(fontsize=6)
+    plt.yticks(fontsize=6)
+    plt.title(label=sample_name,fontsize=6)
+
+    # show plot and wait for user to close the plot
+    plt.show(block=True)
