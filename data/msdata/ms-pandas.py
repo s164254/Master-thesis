@@ -14,34 +14,8 @@ def get_columns_by_attr_name(item_attrs,attr_name):
 def get_column_names(item_attrs,attr_name):
     return [x[3] for x in item_attrs if x[2]==attr_name]
 
-#def filter_nlargest(df,column_name,n):
-#    return df[df[column_name].isin(df.nlargest(,coln).index)]
-
-def get_sample_names(item_attrs):
-    return list(set([x[1] for x in item_attrs]))
-
-def get_column_name(item_attrs,sample_name,attr_name):
-    return [x[3] for x in item_attrs if x[2]==attr_name and x[1]==sample_name][0]
-
 def is_unique_peptides_nan(value):
     return value == 0 or value == 1 or isnan(value)
-
-def plot_hist(df, sample, plot_title, x_label, y_label):
-    sort_indices = m.sort_indices(sample, LABEL_FREE_QUANT, True)[:10]
-    values = m.get_values(sample, LABEL_FREE_QUANT, sort_indices)
-    values = values / np.max(values)
-
-    # plot
-    fig, ax = plt.subplots()
-    ax.bar(m.get_prot(sort_indices),
-           values,
-           width=1,
-           edgecolor="white",
-           linewidth=0.7)
-    plt.title(plot_title % (sample,))
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.show()
 
 # select if any col is 1
 ATTR_RE = '_([a-zA-Z0-9]+)\.raw\.PG\.(.+)'
