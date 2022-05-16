@@ -28,6 +28,7 @@ def is_unique_peptides_nan(value):
 ATTR_RE = '_([a-zA-Z0-9]+)\.raw\.PG\.(.+)'
 UNIQUE_PEPTIDES = 'UniquePeptides'
 LABEL_FREE_QUANT = 'Label-Free Quant'
+PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
 
 script_dir = ft.get_script_dir(__file__)
 fname = 'Batch2_data.csv'
@@ -109,6 +110,18 @@ below = fold_frame[RATIO] < 0.5
 fold_frame_filtered = fold_frame[above | below]
 
 # only collagen
-fold_frame_filtered = fold_frame_filtered[fold_frame_filtered['PG.ProteinDescriptions'].str.contains('Collagen',case=False)]
+fold_frame_filtered = fold_frame_filtered[
+    fold_frame_filtered[PG_PROTEINDESCRIPTIONS].str.contains('Collagen',
+                                                             case=False)]
+fold_frame_filtered.set_index(filtered.columns[2]).plot(y=RATIO,
+                                                        kind='bar',
+                                                        rot=0,
+                                                        legend=False)
+
+# use a smaller font size than the default
+plt.xticks(fontsize=4)
+plt.yticks(fontsize=4)
+plt.title(label='fold', fontsize=6)
+plt.show(block=True)
 
 l, l1 = len(fold_frame), len(filtered)
