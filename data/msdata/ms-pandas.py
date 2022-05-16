@@ -111,7 +111,7 @@ fold_frame_filtered = fold_frame[above | below]
 
 # only collagen
 fold_frame_filtered = fold_frame_filtered[
-    fold_frame_filtered[PG_PROTEINDESCRIPTIONS].str.contains('Collagen',
+    fold_frame_filtered[PG_PROTEINDESCRIPTIONS].str.startswith('Collagen',
                                                              case=False)]
 fold_frame_filtered.set_index(filtered.columns[2]).plot(y=RATIO,
                                                         kind='bar',
