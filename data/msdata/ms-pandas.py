@@ -104,15 +104,14 @@ fold_frame[RATIO] = fold_frame[all_mean_cols[0][0]] / fold_frame[
 #fold_frame[fold_frame[RATIO]<2](plot.scatter(x='index',y='ratio')
 #plt.show(block=True)
 
-# keep rows with ratio > 2 or ratio < 0.5
+# keep rows with ratio > 2 or raetio < 0.5
 above = fold_frame[RATIO] > 2
 below = fold_frame[RATIO] < 0.5
 fold_frame_filtered = fold_frame[above | below]
 
 # only collagen
 fold_frame_filtered = fold_frame_filtered[
-    fold_frame_filtered[PG_PROTEINDESCRIPTIONS].str.startswith('Collagen',
-                                                             case=False)]
+    fold_frame_filtered[PG_PROTEINDESCRIPTIONS].str.startswith('Collagen')]
 fold_frame_filtered.set_index(filtered.columns[2]).plot(y=RATIO,
                                                         kind='bar',
                                                         rot=0,
