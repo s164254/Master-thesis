@@ -104,38 +104,44 @@ class CsvToPandas:
             filtered = self.filtered[protein_description_filter(
                 self.filtered[PG_PROTEINDESCRIPTIONS])]
 
-            # for each sample name make a list of protein description and abundance value and sort according in abundance value
-            for sample_name in sample_names:
-                
+            column_names = self.get_column_names(LABEL_FREE_QUANT,
+                                                 sample_names)
+            all_column_values = [
+                sorted(list(
+                    zip(filtered[PG_PROTEINDESCRIPTIONS],
+                        filtered[column_name])),
+                       key=lambda x: x[1],
+                       reverse=True) for column_name in column_names
+            ]
 
-        fold_frame = self.filtered[(
-            self.filtered[self.abundance_col_names].applymap(
-                lambda value: value > 0 and not isnan(value)).all(1))]
+            # continue N common proteins are found across all samples
+            n = N
+            n_max = min([len(x) for x in all_column_values])
+            num_samples = len(all_column_values)
+            common = set.intersection(
+                *map(set, [[x[0] for x in column_values[:n]]
+                           for column_values in all_column_values]))
+            while n < n_max and len(common) < N:
+                n += 1
+                common = set.intersection(
+                    *map(set, [[x[0] for x in column_values[:n]]
+                               for column_values in all_column_values]))
 
-        # calculate mean of abundance for each of the sample groups
-        for mean_col, sample_names in groups:
-            col_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
-            fold_frame[mean_col] = fold_frame[col_names].mean(
-                axis=1)  # remember axis=1
+            # create a new dataframe based on the list of sample values for each of the N found proteins
+            d = {PG_PROTEINDESCRIPTIONS: list(common)}
+            for sample_name, column_values in zip(sample_names,
+                                                  all_column_values):
+                d.update({
+                    sample_name:
+                    [[x[1] for x in column_values if x[0] == protein][0]
+                     for protein in common]
+                })
 
-        # calculate fraction of the abundance mean columns
-        fold_frame[RATIO] = fold_frame[groups[0][0]] / fold_frame[groups[1][0]]
-
-        # keep rows with ratio > 2 or ratio < 0.5
-        above = fold_frame[RATIO] > 2
-        below = fold_frame[RATIO] < 0.5
-        fold_frame_ratio_filtered = fold_frame[above | below]
-
-        # make a plot for each protein_description_filter
-        for protein_description_filter in protein_description_filters:
-            fold_frame_filtered = fold_frame_ratio_filtered[
-                protein_description_filter(
-                    fold_frame_ratio_filtered[PG_PROTEINDESCRIPTIONS])]
-            fold_frame_filtered.set_index(fold_frame_filtered.columns[2]).plot(
-                y=RATIO, kind='bar', rot=0, legend=False)
+            nmost = pd.DataFrame(data=d)
+            nmost.plot(x=PG_PROTEINDESCRIPTIONS,y=list(sample_names), kind='bar', rot=0, legend=False)
 
             # use a smaller font size than the default
-            plt.xticks(fontsize=4)
-            plt.yticks(fontsize=4)
-            plt.title(label='fold', fontsize=6)
+            plt.xticks(fontsize=8)
+            plt.yticks(fontsize=8)
+            plt.title(label='N most common proteins', fontsize=6)
             plt.show(block=True)
