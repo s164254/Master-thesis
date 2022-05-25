@@ -11,7 +11,6 @@ def is_unique_peptides_nan(value):
     return value == 0 or value == 1 or isnan(value)
 
 
-# select if any col is 1
 ATTR_RE = '_([a-zA-Z0-9]+)\.raw\.PG\.(.+)'
 UNIQUE_PEPTIDES = 'UniquePeptides'
 LABEL_FREE_QUANT = 'Label-Free Quant'
@@ -138,7 +137,11 @@ class CsvToPandas:
                 })
 
             nmost = pd.DataFrame(data=d)
-            nmost.plot(x=PG_PROTEINDESCRIPTIONS,y=list(sample_names), kind='bar', rot=0, legend=False)
+            nmost.plot(x=PG_PROTEINDESCRIPTIONS,
+                       y=list(sample_names),
+                       kind='bar',
+                       rot=0,
+                       legend=False)
 
             # use a smaller font size than the default
             plt.xticks(fontsize=8)
