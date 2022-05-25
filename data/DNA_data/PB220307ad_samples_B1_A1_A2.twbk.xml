@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s23">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font x:Family="Swiss" ss:Bold="1"/>
+   <Interior ss:Color="#DCDCFF" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Sheet1">
+  <Table>
+  <Column ss:Index="1" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="2" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="3" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="4" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="5" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="6" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="7" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="8" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="9" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="10" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="11" ss:AutoFitWidth="0" ss:Width="120.0"/>
+  <Column ss:Index="12" ss:AutoFitWidth="0" ss:Width="120.0"/>
+   <Row ss:AutoFitHeight="0">
+    <Cell ss:StyleID="s23"><Data ss:Type="String">#</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">Sample ID</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">User name</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">Date and Time</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">Nucleic Acid Conc.</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">Unit</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">A260</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">A280</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">260/280</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">260/230</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">Sample Type</Data></Cell>
+    <Cell ss:StyleID="s23"><Data ss:Type="String">Factor</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="Number">1</Data></Cell>
+    <Cell><Data ss:Type="String">PB220307ad B1</Data></Cell>
+    <Cell><Data ss:Type="String">Philip Askøe Bluming</Data></Cell>
+    <Cell><Data ss:Type="String">28-03-2022 16:09:17</Data></Cell>
+    <Cell><Data ss:Type="Number">39</Data></Cell>
+    <Cell><Data ss:Type="String">ng/µl</Data></Cell>
+    <Cell><Data ss:Type="Number">0.781</Data></Cell>
+    <Cell><Data ss:Type="Number">0.423</Data></Cell>
+    <Cell><Data ss:Type="Number">1.84</Data></Cell>
+    <Cell><Data ss:Type="Number">2.03</Data></Cell>
+    <Cell><Data ss:Type="String">DNA</Data></Cell>
+    <Cell><Data ss:Type="Number">50</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="Number">2</Data></Cell>
+    <Cell><Data ss:Type="String">PB220307ad A2</Data></Cell>
+    <Cell><Data ss:Type="String">Philip Askøe Bluming</Data></Cell>
+    <Cell><Data ss:Type="String">28-03-2022 16:15:18</Data></Cell>
+    <Cell><Data ss:Type="Number">23.1</Data></Cell>
+    <Cell><Data ss:Type="String">ng/µl</Data></Cell>
+    <Cell><Data ss:Type="Number">0.462</Data></Cell>
+    <Cell><Data ss:Type="Number">0.249</Data></Cell>
+    <Cell><Data ss:Type="Number">1.85</Data></Cell>
+    <Cell><Data ss:Type="Number">0.94</Data></Cell>
+    <Cell><Data ss:Type="String">DNA</Data></Cell>
+    <Cell><Data ss:Type="Number">50</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="Number">3</Data></Cell>
+    <Cell><Data ss:Type="String">PB220307ad A1</Data></Cell>
+    <Cell><Data ss:Type="String">Philip Askøe Bluming</Data></Cell>
+    <Cell><Data ss:Type="String">28-03-2022 16:19:33</Data></Cell>
+    <Cell><Data ss:Type="Number">33.3</Data></Cell>
+    <Cell><Data ss:Type="String">ng/µl</Data></Cell>
+    <Cell><Data ss:Type="Number">0.666</Data></Cell>
+    <Cell><Data ss:Type="Number">0.363</Data></Cell>
+    <Cell><Data ss:Type="Number">1.83</Data></Cell>
+    <Cell><Data ss:Type="Number">0.8</Data></Cell>
+    <Cell><Data ss:Type="String">DNA</Data></Cell>
+    <Cell><Data ss:Type="Number">50</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="Number">4</Data></Cell>
+    <Cell><Data ss:Type="String">PB220307ad A2</Data></Cell>
+    <Cell><Data ss:Type="String">Philip Askøe Bluming</Data></Cell>
+    <Cell><Data ss:Type="String">28-03-2022 16:20:52</Data></Cell>
+    <Cell><Data ss:Type="Number">21.7</Data></Cell>
+    <Cell><Data ss:Type="String">ng/µl</Data></Cell>
+    <Cell><Data ss:Type="Number">0.434</Data></Cell>
+    <Cell><Data ss:Type="Number">0.237</Data></Cell>
+    <Cell><Data ss:Type="Number">1.83</Data></Cell>
+    <Cell><Data ss:Type="Number">1.19</Data></Cell>
+    <Cell><Data ss:Type="String">DNA</Data></Cell>
+    <Cell><Data ss:Type="Number">50</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="Number">5</Data></Cell>
+    <Cell><Data ss:Type="String">PB220307ad A1</Data></Cell>
+    <Cell><Data ss:Type="String">Philip Askøe Bluming</Data></Cell>
+    <Cell><Data ss:Type="String">28-03-2022 16:22:13</Data></Cell>
+    <Cell><Data ss:Type="Number">4.5</Data></Cell>
+    <Cell><Data ss:Type="String">ng/µl</Data></Cell>
+    <Cell><Data ss:Type="Number">0.09</Data></Cell>
+    <Cell><Data ss:Type="Number">0.054</Data></Cell>
+    <Cell><Data ss:Type="Number">1.66</Data></Cell>
+    <Cell><Data ss:Type="Number">0.62</Data></Cell>
+    <Cell><Data ss:Type="String">DNA</Data></Cell>
+    <Cell><Data ss:Type="Number">50</Data></Cell>
+   </Row>
+   <Row ss:AutoFitHeight="0">
+    <Cell><Data ss:Type="Number">6</Data></Cell>
+    <Cell><Data ss:Type="String">PB220307ad A1</Data></Cell>
+    <Cell><Data ss:Type="String">Philip Askøe Bluming</Data></Cell>
+    <Cell><Data ss:Type="String">28-03-2022 16:23:55</Data></Cell>
+    <Cell><Data ss:Type="Number">3.8</Data></Cell>
+    <Cell><Data ss:Type="String">ng/µl</Data></Cell>
+    <Cell><Data ss:Type="Number">0.077</Data></Cell>
+    <Cell><Data ss:Type="Number">0.041</Data></Cell>
+    <Cell><Data ss:Type="Number">1.9</Data></Cell>
+    <Cell><Data ss:Type="Number">0.63</Data></Cell>
+    <Cell><Data ss:Type="String">DNA</Data></Cell>
+    <Cell><Data ss:Type="Number">50</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>
