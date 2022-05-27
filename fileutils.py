@@ -1,30 +1,22 @@
 from os import path
 import csv
 
+DNA_DATA_PATH = path.join('data', 'DNA_data')
+MS_DATA_PATH = path.join('data', 'msdata')
+
 
 def get_script_dir(_file_):
     return path.dirname(path.realpath(_file_))
 
 
-def relative_to_script_dir(_file_, fname, data_path=''):
-    return path.join(get_script_dir(_file_), data_path, fname)
+def relative_to_script_dir(_file_, fname, ext, data_path=''):
+    return path.join(get_script_dir(_file_), data_path,
+                     fname.find('.') > 0 and fname or '%s.%s' % (fname, ext))
 
 
-def write_csv(csv_file_name, header, data):
-    with open(csv_file_name, 'w') as csvfile:
-        wrtr = csv.writer(csvfile, delimiter=',')
-        wrtr.writerow(header)
-        for row in data:
-            wrtr.writerow(row)
+def dnadata_filename(fname, ext='xlsx'):
+    return relative_to_script_dir(__file__, fname, ext, DNA_DATA_PATH)
 
 
-def load_csv(fname, delim, with_header):
-    with open(fname, 'r') as csvfile:
-        rdr = csv.reader(csvfile, delimiter=delim)
-        rows = [row for row in rdr]
-        if len(rows) > 0:
-            if with_header:
-                return (rows[0], rows[1:])
-            else:
-                return (None, rows)
-        return None
+def msdata_filename(fname, ext='xlsx'):
+    return relative_to_script_dir(__file__, fname, ext, MS_DATA_PATH)
