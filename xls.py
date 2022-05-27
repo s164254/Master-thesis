@@ -3,12 +3,6 @@ from os import path
 import fileutils as ft
 import plotutils
 
-DNA_DATA = path.join('data', 'DNA_data')
-
-
-def resulting_filename(fname, ext='xlsx'):
-    return ft.relative_to_script_dir(__file__, '%s.%s' % (fname, ext),
-                                     DNA_DATA)
 
 
 files = (
