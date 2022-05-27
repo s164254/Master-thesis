@@ -1,9 +1,7 @@
-from importlib.machinery import WindowsRegistryFinder
-from itertools import groupby
 import pandas as pd
 from os import path
 import fileutils as ft
-import matplotlib.pyplot as plt
+import plotutils
 
 DNA_DATA = path.join('data', 'DNA_data')
 
@@ -27,24 +25,27 @@ NUCLEIC_ACID_CONC = 'Nucleic Acid Conc.'
 DNA_CONC_NG_MG = 'DNA Conc ng/mg'
 WEIGHT = 'Weight (mg)'
 
+
 def to_csv():
-    for fname,title in files[-1:]:
+    for fname, title in files[-1:]:
         data = pd.read_excel(resulting_filename(fname))
-        m = data.groupby([SAMPLE_ID])[[NUCLEIC_ACID_CONC,WEIGHT]].mean()
+        m = data.groupby([SAMPLE_ID])[[NUCLEIC_ACID_CONC, WEIGHT]].mean()
         m[DNA_CONC_NG_MG] = 400 * m[NUCLEIC_ACID_CONC] / m[WEIGHT]
-        m.to_csv(resulting_filename(fname,'csv'))
+        m.to_csv(resulting_filename(fname, 'csv'))
+
 
 def plot_all():
-    for fname,title in files:
-        data = pd.read_csv(resulting_filename(fname,'csv'))
-        ax = data.plot(x=SAMPLE_ID, y=DNA_CONC_NG_MG, kind='bar', rot=0, legend=False)
-        ax.bar_label(ax.containers[0])
+    for fname, title in files:
+        df = pd.read_csv(resulting_filename(fname, 'csv'))
+        plotutils.dataframe_plot(
+            df,
+            lambda df: df.plot(
+                x=SAMPLE_ID, y=DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
+            ),
+            '%s %s' % (DNA_CONC_NG_MG, title),
+            lambda ax: ax.bar_label(ax.containers[0]),
+            block=True)
 
-        # use a smaller font size than the default
-        plt.xticks(fontsize=8)
-        plt.yticks(fontsize=8)
-        plt.title(label='%s %s' % (DNA_CONC_NG_MG,title), fontsize=6)
-        plt.show(block=True)
 
 #to_csv()
 plot_all()
