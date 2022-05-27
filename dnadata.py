@@ -22,15 +22,15 @@ WEIGHT = 'Weight (mg)'
 
 def to_csv():
     for fname, title in files[-1:]:
-        data = pd.read_excel(resulting_filename(fname))
+        data = pd.read_excel(ft.dnadata_filename(fname))
         m = data.groupby([SAMPLE_ID])[[NUCLEIC_ACID_CONC, WEIGHT]].mean()
         m[DNA_CONC_NG_MG] = 400 * m[NUCLEIC_ACID_CONC] / m[WEIGHT]
-        m.to_csv(resulting_filename(fname, 'csv'))
+        m.to_csv(ft.dnadata_filename(fname, 'csv'))
 
 
 def plot_all():
     for fname, title in files:
-        df = pd.read_csv(resulting_filename(fname, 'csv'))
+        df = pd.read_csv(ft.dnadata_filename(fname, 'csv'))
         plotutils.dataframe_plot(
             df,
             lambda df: df.plot(
@@ -41,5 +41,5 @@ def plot_all():
             block=True)
 
 
-#to_csv()
+to_csv()
 plot_all()
