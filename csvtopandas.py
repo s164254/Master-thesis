@@ -7,7 +7,7 @@ def is_unique_peptides_nan(value):
     return value == 0 or value == 1 or isnan(value)
 
 
-ATTR_RE = '_([a-zA-Z0-9]+)\.raw\.PG\.(.+)'
+ATTR_RE = '([_a-zA-Z0-9]+)\.raw\.PG\.(.+)'
 UNIQUE_PEPTIDES = 'UniquePeptides'
 LABEL_FREE_QUANT = 'Label-Free Quant'
 PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
