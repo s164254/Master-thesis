@@ -97,12 +97,18 @@ class CsvToPandas:
                 block=True)
 
     def to_gene_list(self, gen_fname):
+        gene_list = []
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
             # sort by values in label-free quant column for sample_name
             df = self.filtered.sort_values(by=[column_name], ascending=False)
             genes = df.loc[df[column_name] > 0, PG_GENES]
+            genes = [x for x in genes.values if isinstance(x, str)]
+            gene_list.append(genes)
             with open(gen_fname('%s.csv' % (column_name,)), 'w') as f:
-                f.write('\n'.join([x for x in genes.values if isinstance(x, str)]))
+                f.write('\n'.join(genes))
+        
+        with open(gen_fname('common.csv'), 'w') as f:
+            f.write('\n'.join(sorted(set.intersection(*map(set,gene_list)))))
 
     def to_csv(self, csv_file) -> None:
         self.filtered.to_csv(csv_file)
