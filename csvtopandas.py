@@ -16,7 +16,10 @@ RATIO = 'ratio'
 
 class CsvToPandas:
     def __init__(self, csv_file) -> None:
-        csv = pd.read_csv(csv_file)
+        try:
+            csv = pd.read_csv(csv_file)
+        except:
+            csv = pd.read_csv(csv_file, delimiter='\t')
 
         col_info = [(i, m.groups()[0], m.groups()[1], c)
                     for i, m, c in [(i, re.search(ATTR_RE, c), c)
@@ -35,8 +38,9 @@ class CsvToPandas:
             lambda value: not is_unique_peptides_nan(value)).any(1))]
 
         # put newlines in protein description
-        filtered[filtered.columns[2]] = filtered.apply(
-            lambda x: re.sub('\s+', '\n', x[2]), axis=1)
+        protein_desc_column = csv.columns.tolist().index(PG_PROTEINDESCRIPTIONS)
+        filtered[filtered.columns[protein_desc_column]] = filtered.apply(
+            lambda x: re.sub('\s+', '\n', x[protein_desc_column]), axis=1)
 
         # for the remaining rows set label-free quant to 0 if the corresponding unique peptides value is either 0, 1 or NAN
         abundance_col_names = self.get_column_names(LABEL_FREE_QUANT)
