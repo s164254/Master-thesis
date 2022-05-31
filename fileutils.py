@@ -11,6 +11,9 @@ MS_DATA_GENE_PATH = path.join(MS_DATA_PATH, 'gene')
 def get_script_dir(_file_):
     return path.dirname(path.realpath(_file_))
 
+def read_file(fname):
+    with open(fname,'r') as f:
+        return [l.strip() for l in f.readlines() if l.strip()]
 
 def relative_to_script_dir(_file_, fname, ext, data_path=''):
     fdir = path.join(get_script_dir(_file_), data_path)

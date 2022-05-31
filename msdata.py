@@ -5,6 +5,8 @@ from os import path
 def col_starts_with(startswith):
     return lambda col: col.str.startswith(startswith)
 
+prots = ft.read_file(ft.msdata_filename('proteomics_experiment_1_common_manual_cellular_proteins.txt'))
+
 fname = 'Proteomics_experiment_2.tsv'
 fname = 'Batch2_data.csv'
 p = CsvToPandas(ft.msdata_filename(fname))
