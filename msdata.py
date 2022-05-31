@@ -10,6 +10,11 @@ prots = ft.read_file(ft.msdata_filename('proteomics_experiment_1_common_manual_c
 
 fname = 'Proteomics_experiment_2.tsv'
 fname = 'Batch2_data.csv'
+
+# csv with diuplicates
+#df = p.filtered[p.filtered.duplicated(['PG.Genes'])].sort_values(by=['PG.Genes'])
+#df.to_csv(ft.msdata_gene_filename('dups'))
+
 p = csvtopandas.CsvToPandas(ft.msdata_filename(fname))
 df = p.filtered[p.filtered['PG.Genes'].isin(prots)]
 pl.dataframe_plot(df, lambda df: df.plot(x=csvtopandas.PG_PROTEINDESCRIPTIONS,

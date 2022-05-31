@@ -101,7 +101,8 @@ class CsvToPandas:
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
             # sort by values in label-free quant column for sample_name
             df = self.filtered.sort_values(by=[column_name], ascending=False)
-            genes = df.loc[df[column_name] > 0, PG_GENES]
+            df = df[df[column_name] > 0]
+            genes = df[PG_GENES]
             genes = [x for x in genes.values if isinstance(x, str)]
             gene_list.append(genes)
             with open(gen_fname('%s.csv' % (column_name,)), 'w') as f:
