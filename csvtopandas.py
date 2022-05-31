@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import plotutils
 
+
 def is_unique_peptides_nan(value):
     return value == 0 or value == 1 or isnan(value)
 
@@ -11,6 +12,7 @@ ATTR_RE = '([_a-zA-Z0-9]+)\.raw\.PG\.(.+)'
 UNIQUE_PEPTIDES = 'UniquePeptides'
 LABEL_FREE_QUANT = 'Label-Free Quant'
 PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
+PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
 
@@ -38,7 +40,8 @@ class CsvToPandas:
             lambda value: not is_unique_peptides_nan(value)).any(1))]
 
         # put newlines in protein description
-        protein_desc_column = csv.columns.tolist().index(PG_PROTEINDESCRIPTIONS)
+        protein_desc_column = csv.columns.tolist().index(
+            PG_PROTEINDESCRIPTIONS)
         filtered[filtered.columns[protein_desc_column]] = filtered.apply(
             lambda x: re.sub('\s+', '\n', x[protein_desc_column]), axis=1)
 
@@ -88,9 +91,21 @@ class CsvToPandas:
 
             plotutils.dataframe_plot(
                 fold_frame_filtered,
-                lambda df: df.set_index(fold_frame_filtered.columns[2]).plot(y=RATIO, kind='bar', rot=0, legend=False),
-                '', 
+                lambda df: df.set_index(fold_frame_filtered.columns[2]).plot(
+                    y=RATIO, kind='bar', rot=0, legend=False),
+                '',
                 block=True)
+
+    def to_gene_list(self, gen_fname):
+        for column_name in self.get_column_names(LABEL_FREE_QUANT):
+            # sort by values in label-free quant column for sample_name
+            df = self.filtered.sort_values(by=[column_name], ascending=False)
+            genes = df.loc[df[column_name] > 0, PG_GENES]
+            with open(gen_fname('%s.csv' % (column_name,)), 'w') as f:
+                f.write('\n'.join([x for x in genes.values if isinstance(x, str)]))
+
+    def to_csv(self, csv_file) -> None:
+        self.filtered.to_csv(csv_file)
 
     def group_analysis(self, sample_names, protein_description_filters, N):
         """
@@ -138,6 +153,10 @@ class CsvToPandas:
 
             plotutils.dataframe_plot(
                 nmost,
-                lambda df: df.plot(x=PG_PROTEINDESCRIPTIONS,y=list(sample_names),kind='bar',rot=0,legend=False),
-                'N most common proteins', 
+                lambda df: df.plot(x=PG_PROTEINDESCRIPTIONS,
+                                   y=list(sample_names),
+                                   kind='bar',
+                                   rot=0,
+                                   legend=False),
+                'N most common proteins',
                 block=True)
