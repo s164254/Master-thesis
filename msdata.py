@@ -1,6 +1,7 @@
-from csvtopandas import CsvToPandas
+import csvtopandas
 import fileutils as ft
 from os import path
+import plotutils as pl
 
 def col_starts_with(startswith):
     return lambda col: col.str.startswith(startswith)
@@ -9,7 +10,13 @@ prots = ft.read_file(ft.msdata_filename('proteomics_experiment_1_common_manual_c
 
 fname = 'Proteomics_experiment_2.tsv'
 fname = 'Batch2_data.csv'
-p = CsvToPandas(ft.msdata_filename(fname))
+p = csvtopandas.CsvToPandas(ft.msdata_filename(fname))
+df = p.filtered[p.filtered['PG.Genes'].isin(prots)]
+pl.dataframe_plot(df, lambda df: df.plot(x=csvtopandas.PG_PROTEINDESCRIPTIONS,
+                                   y=p.abundance_col_names,
+                                   kind='bar',
+                                   rot=0,
+                                   legend=False), 'A title')
 #p.to_csv(ft.msdata_csv_filename(fname))
 p.to_gene_list(ft.msdata_gene_filename)
 
