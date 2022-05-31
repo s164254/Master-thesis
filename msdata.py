@@ -5,7 +5,8 @@ from os import path
 def col_starts_with(startswith):
     return lambda col: col.str.startswith(startswith)
 
-fname = 'Batch2_data.csv'
+fname = 'Proteomics_experiment_2.tsv'
+#fname = 'Batch2_data.csv'
 p = CsvToPandas(ft.msdata_filename(fname))
 
 fold_groups = (('adult_mean', ('M1', 'M2')), ('piglet_mean', ('P1', 'P2')))
