@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def dataframe_plot(df, plot_func, title, axis_setup_func=None, title_font_size=8, tick_font_size=8, block=False):
+def dataframe_plot(df, plot_func, title, axis_setup_func=None, title_font_size=4, tick_font_size=4, block=False):
     ax = plot_func(df)
     
     if axis_setup_func:

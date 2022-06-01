@@ -10,13 +10,20 @@ prots = ft.read_file(ft.msdata_filename('proteomics_experiment_1_common_manual_c
 
 fname = 'Proteomics_experiment_2.tsv'
 fname = 'Batch2_data.csv'
+
+# csv with diuplicates
+#df = p.filtered[p.filtered.duplicated(['PG.Genes'])].sort_values(by=['PG.Genes'])
+#df.to_csv(ft.msdata_gene_filename('dups'))
+
 p = csvtopandas.CsvToPandas(ft.msdata_filename(fname))
 df = p.filtered[p.filtered['PG.Genes'].isin(prots)]
+m1_p1 = ['M1','P1']
+sns = [sn for sn in p.abundance_col_names if any([x for x in m1_p1 if sn.find(x)>0])]
 pl.dataframe_plot(df, lambda df: df.plot(x=csvtopandas.PG_PROTEINDESCRIPTIONS,
-                                   y=p.abundance_col_names,
+                                   y=sns,
                                    kind='bar',
                                    rot=0,
-                                   legend=False), 'A title')
+                                   legend=False), 'A title', lambda ax: ax.legend(m1_p1))
 #p.to_csv(ft.msdata_csv_filename(fname))
 p.to_gene_list(ft.msdata_gene_filename)
 
