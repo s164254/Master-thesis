@@ -1,0 +1,2 @@
+most_abundant_common_proteins	proteomics_experiment1	M1,P1
+#fold_change

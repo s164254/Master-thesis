@@ -2,7 +2,8 @@ from math import isnan
 import pandas as pd
 import re
 import plotutils
-
+import experiment_args
+import fileutils as ft
 
 def is_unique_peptides_nan(value):
     return value == 0 or value == 1 or isnan(value)
@@ -17,11 +18,13 @@ RATIO = 'ratio'
 
 
 class CsvToPandas:
-    def __init__(self, csv_file) -> None:
+    def __init__(self, args) -> None:
+        args = isinstance(args, str) and experiment_args.to_experiment_args(args) or args
+        self.args = args
         try:
-            csv = pd.read_csv(csv_file)
+            csv = pd.read_csv(args.filename)
         except:
-            csv = pd.read_csv(csv_file, delimiter='\t')
+            csv = pd.read_csv(args.filename, delimiter='\t')
 
         col_info = [(i, m.groups()[0], m.groups()[1], c)
                     for i, m, c in [(i, re.search(ATTR_RE, c), c)
@@ -96,7 +99,7 @@ class CsvToPandas:
                 '',
                 block=True)
 
-    def to_gene_list(self, gen_fname):
+    def to_gene_list(self):
         gene_list = []
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
             # sort by values in label-free quant column for sample_name
@@ -105,10 +108,10 @@ class CsvToPandas:
             genes = df[PG_GENES]
             genes = [x for x in genes.values if isinstance(x, str)]
             gene_list.append(genes)
-            with open(gen_fname('%s.csv' % (column_name,)), 'w') as f:
+            with open(ft.msdata_gene_filename('%s.csv' % (column_name,)), 'w') as f:
                 f.write('\n'.join(genes))
         
-        with open(gen_fname('common.csv'), 'w') as f:
+        with open(ft.msdata_gene_filename('common.csv'), 'w') as f:
             f.write('\n'.join(sorted(set.intersection(*map(set,gene_list)))))
 
     def to_csv(self, csv_file) -> None:
