@@ -58,6 +58,6 @@ def to_file(fname, content):
     dirname = path.dirname(fname)
     if not path.exists(dirname):
         makedirs(dirname, exist_ok=True)
-
+    print(fname)
     with open(fname.replace(' ','_'), 'w') as f:
         f.write(content)

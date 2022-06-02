@@ -19,7 +19,7 @@ PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
 
-def gen_nmost_common(lists, N, common_column_idx):
+def nmost_common(lists, N, common_column_idx, df_column_names):
     n = N
     n_max = min([len(l) for l in lists])
     common = set.intersection(
@@ -34,8 +34,13 @@ def gen_nmost_common(lists, N, common_column_idx):
     #return [[row for row in lst[:n] if row[common_column_idx] in common]
     #        for lst in lists]
     # sorteret
-    res = [[[row for row in lst[:n] if row[common_column_idx]==gene][0] for lst in lists] for gene in sorted(common)]
-    return res
+
+    # create dict for resuting dataframe
+    common = list(sorted(common))
+    d = { df_column_names[0]: common}
+    for lst, column_name in zip(lists,df_column_names[1:]):
+        d[column_name] = [[row for row in lst[:n] if row[common_column_idx]==gene][0][1] for gene in sorted(common)] 
+    return pd.DataFrame(d)
 
 
 class CsvToPandas:
@@ -92,8 +97,8 @@ class CsvToPandas:
 
     def gene_analysis(self, N, sample_names=None):
         gene_abundance_list = []
-        for column_name in self.get_column_names(LABEL_FREE_QUANT,
-                                                 sample_names):
+        column_names = self.get_column_names(LABEL_FREE_QUANT,sample_names)
+        for column_name in column_names:
             # create dataframe where all rows have a value > 0 in all abundance columns
             df = self.filtered
             df = df[df[column_name] > 0].copy()
@@ -106,8 +111,16 @@ class CsvToPandas:
             gene_abundance_list.append(
                 [row for row in l if row[0] in self.args.common_proteins])
 
-        x = gen_nmost_common(gene_abundance_list, N, 0)
-        l = len(x)
+        res = nmost_common(gene_abundance_list, N, 0, [PG_GENES] + column_names) 
+        plotutils.dataframe_plot(
+            res,
+            lambda df: df.plot(x=PG_GENES,
+                                y=column_names,
+                                kind='bar',
+                                rot=0,
+                                legend=False),
+            'N most common proteins',
+            block=True)
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
