@@ -1,0 +1,25 @@
+
+#Det output vi skal have for hvert eksperiment:
+
+#Proteomics experiment 1:
+#1. Med rådata som input skal der laves en liste for hvert sample (M1, M2, P1, P2) med alle proteiner (gene names) efter man har lavet filtrering til at undgå dem der kun er baseret på et unikt protein (unique proteins). NaN proteiner skal også filtreres fra.
+
+#Alt fra nu af er kun samples M1 og P1!
+#2. Med en liste af fælles cellulære proteiner som input, skal disse sorteres efter abundance (fra højest til lavest) for samples M1 og P1. Herfra skal en fællesmængde vælges ud, der repræsenterer de 20 mest abundant proteiner. Et bar chart skal laves over disse, hvor abundance af disse 20 proteiner sammenlignes for de to samples. Proteinnavnene skal ikke skrives ved hver sæt af barrer, i stedet skal x-aksen blot hedde: ”Cellular proteins belonging to xxxxx group”.
+
+#3. Med data hvor proteiner baseret på 1 unikt peptid er filtreret fra som input, skal data sorteres efter abundance, og de 20 mest abundant proteiner i samples M1 og P1 udvælges. Manuelt tælles så mængden af cellulære og ECM proteiner i hvert sample. Barchart med antal cellulære- og antal ECM proteiner for hvert sample laves ud fra dette. Vær opmærksom på, at denne analyse ikke er ligeså vigtig, og kan laves senere.
+
+#4. Med data hvor proteiner baseret på 1 unikt peptid er filtreret fra, samt hvor man kun kigger på fælles proteiner i samples M1 og P1 som input, skal ratio mellem alle proteiner udregnes for de to samples, og hvis denne er under 0.5 eller over 2, skal proteinerne sorteres fra. Herfra, skal der søges efter Collagen, fibronectin, og laminin (skal stå som første ord) i datasættet, og disse proteiner skal udtrækkes i hver deres datasæt. De resulterende datasæt sorteres efter abundance (fra størst til mindst) og en fællesmængde der repræsenterer de samlede (for samples M1 og P1) 5 mest abundant proteiner vælges ud. Abundance værdierne for disse plottes (i et bar plot) mod hinanden for de to samples, for alle tre proteintyper (collagen, fibronectin, og laminin). Her skal de specifikke proteinnavne fremgå ved hvert sæt af barrer.
+
+#Proteomics experiment 2:
+Sample T4 skal ikke bruges på noget tidspunkt i det følgende, selv ikke hvis der står alle samples!
+#1 Med rådata som input skal der laves en liste for hvert sample,(Fa1a, Fa2a, T1, T2, T3) med alle proteiner (gene names) efter man har lavet filtrering til at undgå dem der kun er baseret på et unikt protein (unique proteins). NaN proteiner skal også filtreres fra.
+
+Samples der bliver sammenlignet (via plots) i det følgende er henholdvis (Fa1a, T1, T2, T3) og (Fa1a, Fa2a)
+#2 I hver af de genererede lister i punkt #1 skal der i de tre første kolonner søges efter termerne ”extracellular”, ”basement”, ”collagen”, ”fibronectin”, ”laminin”, ”Elastin”, og ”Proteoglycan”. Mængden af proteiner hvor bare et af disse termer indgår i proteingruppen (de tre første kolonner) skal tælles. Mængden der ikke grupperes skal også tælles. Disse to tal skal være output for hvert sample (det ene tal kan kaldes ”ECM proteins”, det andet ”cellular or uncharacterized proteins”).
+
+#3 Med en liste af fælles cellulære proteiner som input, skal disse sorteres efter abundance (fra højest til lavest) for alle samples. Herfra skal en fællesmængde vælges ud (fællesmængde mellem de samples der sammenlignes, se stor skrift tidligere!), der repræsenterer de 20 mest abundant proteiner (hvis der er så mange). Et bar chart skal laves over disse, hvor abundance af disse fem proteiner sammenlignes for samples.
+
+#4 For sammenligningen mellem samples Fa1a, T1, T2, T3: Med data hvor proteiner baseret på 1 unikt peptid er filtreret fra, samt hvor man kun kigger på fælles proteiner i samples som input skal der søges efter Collagen, fibronectin, og laminin (skal stå som første ord) i datasættet, og disse proteiner skal udtrækkes i hver deres datasæt. De resulterende datasæt sorteres efter abundance (fra størst til mindst) og en fællesmængde der repræsenterer de samlede (for de givne sample) 5 mest abundant proteiner vælges ud. Abundance værdierne for disse plottes (i et bar plot) mod hinanden for de to samples, for alle tre proteintyper (collagen, fibronectin, og laminin). Her skal de specifikke proteinnavne fremgå ved hvert sæt af barrer. 
+
+#5 For sammenligningen mellem samples Fa1a og Fa2a: Med data hvor proteiner baseret på 1 unikt peptid er filtreret fra, skal ratio mellem alle proteiner udregnes for de to samples, og hvis denne er under 0.5 eller over 2, skal proteinerne sorteres fra.  Herfra, skal der søges efter Collagen, fibronectin, og laminin (skal stå som første ord) i datasættet, og disse proteiner skal udtrækkes i hver deres datasæt. De resulterende datasæt sorteres efter abundance (fra størst til mindst) og en fællesmængde der repræsenterer de samlede (for de to samples) 5 mest abundant proteiner vælges ud. Abundance værdierne for disse plottes (i et bar plot) mod hinanden for de to samples, for alle tre proteintyper (collagen, fibronectin, og laminin). Her skal de specifikke proteinnavne fremgå ved hvert sæt af barrer.
