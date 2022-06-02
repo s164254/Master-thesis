@@ -18,6 +18,9 @@ PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
+def gene_analysis_plot_func(plt):
+    plt.xlabel('bla bla bla')
+    plt.ylabel('bli bli bla')
 
 def nmost_common(lists, N, common_column_idx, df_column_names):
     n = N
@@ -118,9 +121,11 @@ class CsvToPandas:
                                 y=column_names,
                                 kind='bar',
                                 rot=0,
-                                legend=False),
-            'N most common proteins',
-            block=True)
+                                legend=True),
+            'N most common proteins', 
+            axis_setup_func = lambda ax: ax.get_xaxis().set_ticklabels([]),
+            plot_setup_func= gene_analysis_plot_func,
+            block=True, fig_filename='test.svg')
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
