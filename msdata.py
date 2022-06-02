@@ -25,7 +25,7 @@ pl.dataframe_plot(df, lambda df: df.plot(x=csvtopandas.PG_PROTEINDESCRIPTIONS,
                                    rot=0,
                                    legend=False), 'A title', lambda ax: ax.legend(m1_p1))
 #p.to_csv(ft.msdata_csv_filename(fname))
-p.to_gene_list(ft.msdata_gene_filename)
+p.to_gene_list()
 
 #fold_groups = (('adult_mean', ('M1', 'M2')), ('piglet_mean', ('P1', 'P2')))
 #protein_groups = ('Collagen','Laminin')
