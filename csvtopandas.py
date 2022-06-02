@@ -1,9 +1,11 @@
 from math import isnan
+from operator import index
 import pandas as pd
 import re
 import plotutils
 import experiment_args
 import fileutils as ft
+
 
 def is_unique_peptides_nan(value):
     return value == 0 or value == 1 or isnan(value)
@@ -17,9 +19,30 @@ PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
 
+def gen_nmost_common(lists, N, common_column_idx):
+    n = N
+    n_max = min([len(l) for l in lists])
+    common = set.intersection(
+        *map(set, [[row[common_column_idx] for row in lst[:n]]
+                   for lst in lists]))
+    while n < n_max and len(common) < N:
+        n += 1
+        common = set.intersection(
+            *map(set, [[row[common_column_idx] for row in lst[:n]]
+                       for lst in lists]))
+
+    #return [[row for row in lst[:n] if row[common_column_idx] in common]
+    #        for lst in lists]
+    # sorteret
+    res = [[[row for row in lst[:n] if row[common_column_idx]==gene][0] for lst in lists] for gene in sorted(common)]
+    return res
+
+
 class CsvToPandas:
+
     def __init__(self, args) -> None:
-        args = isinstance(args, str) and experiment_args.to_experiment_args(args) or args
+        args = isinstance(
+            args, str) and experiment_args.to_experiment_args(args) or args
         self.args = args
         try:
             csv = pd.read_csv(args.filename)
@@ -57,17 +80,61 @@ class CsvToPandas:
                     unique_peptides_col_name]) else x[abundance_col_name],
                 axis=1)
 
+        # set abundance value to 0 if it is NAN
+        for abundance_col_name in abundance_col_names:
+            filtered[abundance_col_name] = filtered.apply(lambda x: isnan(x[
+                abundance_col_name]) and 0 or x[abundance_col_name],
+                                                          axis=1)
+
         self.abundance_col_names = abundance_col_names
         self.unique_peptides_col_names = unique_peptides_col_names
         self.filtered = filtered
 
-    def get_column_names(self, attr_name, sample_names=[]):
+    def gene_analysis(self, N, sample_names=None):
+        gene_abundance_list = []
+        for column_name in self.get_column_names(LABEL_FREE_QUANT,
+                                                 sample_names):
+            # create dataframe where all rows have a value > 0 in all abundance columns
+            df = self.filtered
+            df = df[df[column_name] > 0].copy()
+
+            # sort with largest abundance value first
+            df = df.sort_values(by=[column_name], ascending=False)
+
+            # extract gene and abundance value to a list of tuples
+            l = list(zip(df[PG_GENES], df[column_name]))
+            gene_abundance_list.append(
+                [row for row in l if row[0] in self.args.common_proteins])
+
+        x = gen_nmost_common(gene_abundance_list, N, 0)
+        l = len(x)
+
+    def get_column_names(self, attr_name, sample_names=None):
         return [
-            x[3] for x in self.col_info if x[2] == attr_name and (
-                (len(sample_names) == 0) or (x[1] in sample_names))
+            x[3] for x in self.col_info if x[2] == attr_name
+            and self.sample_name_match(x[1], sample_names)
         ]
 
+    def sample_name_match(self, sample_name, sample_names):
+        if not sample_names:
+            return True
+
+        matches = [
+            sn for sn in sample_names if sample_name.find('_%s' % (sn, )) > 0
+        ]
+        if len(matches) > 1:
+            raise Exception(
+                'sample_name_match: More than one matched sample: sample_name:%s, sample_names:%s'
+                % (sample_name, sample_names))
+
+        return matches and matches[0] or None
+
+    def columnname_to_samplename(self, column_name):
+        csv_samplename = [c for c in self.col_info if c[3] == column_name][0]
+        pass
+
     def fold_analysis(self, groups, protein_description_filters):
+        # create dataframe where all rows have a value > 0 in all abundance columns
         fold_frame = self.filtered[(
             self.filtered[self.abundance_col_names].applymap(
                 lambda value: value > 0 and not isnan(value)).all(1))]
@@ -104,15 +171,24 @@ class CsvToPandas:
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
             # sort by values in label-free quant column for sample_name
             df = self.filtered.sort_values(by=[column_name], ascending=False)
-            df = df[df[column_name] > 0]
-            genes = df[PG_GENES]
-            genes = [x for x in genes.values if isinstance(x, str)]
+
+            # copy rows with abundance value > 0 to a new dataframe
+            df = df[df[column_name] > 0].copy()
+
+            # get list of corresponding gene id's but remove rows with invalid gene id's (NAN)
+            genes = list(
+                set([x for x in df[PG_GENES].values if isinstance(x, str)]))
+
+            # write list of genes to CSV file
+            # todo: write to file in experiment output dir.
+            ft.to_file(self.args.gene_filename('%s.csv' % (column_name, )),
+                       '\n'.join(sorted(genes)))
+
+            # append to our total list of genes
             gene_list.append(genes)
-            with open(ft.msdata_gene_filename('%s.csv' % (column_name,)), 'w') as f:
-                f.write('\n'.join(genes))
-        
-        with open(ft.msdata_gene_filename('common.csv'), 'w') as f:
-            f.write('\n'.join(sorted(set.intersection(*map(set,gene_list)))))
+
+        ft.to_file(self.args.gene_filename('common.csv'),
+                   '\n'.join(sorted(set.intersection(*map(set, gene_list)))))
 
     def to_csv(self, csv_file) -> None:
         self.filtered.to_csv(csv_file)
@@ -139,7 +215,6 @@ class CsvToPandas:
             # continue N common proteins are found across all samples
             n = N
             n_max = min([len(x) for x in all_column_values])
-            num_samples = len(all_column_values)
             common = set.intersection(
                 *map(set, [[x[0] for x in column_values[:n]]
                            for column_values in all_column_values]))

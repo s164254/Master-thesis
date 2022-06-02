@@ -22,7 +22,7 @@ def read_file(fname):
 def relative_to_script_dir(_file_, fname, ext, data_path=''):
     fdir = path.join(get_script_dir(_file_), data_path)
     if not path.exists(fdir):
-        makedirs(fdir)
+        makedirs(fdir, exist_ok=True)
     return path.join(fdir,
                      fname.find('.') > 0 and fname or '%s.%s' % (fname, ext))
 
@@ -53,3 +53,7 @@ def to_list(fname, sep=None):
     if not content:
         return None
     return content[0].find(sep) >= 0 and content[0].split(sep) or content
+
+def to_file(fname, content):
+    with open(fname, 'w') as f:
+        f.write(content)

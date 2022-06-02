@@ -22,7 +22,8 @@ def to_experiment_args(experiment_name):
         makedirs(output_dir)
 
     res['experiment_output_dir'] = path.join(output_dir, experiment_name)
-    if not path.exists(res.experiment_output_dir):
-        makedirs(res.experiment_output_dir)
-    
+
+    res['gene_filename'] = lambda fn: path.join( res.experiment_output_dir, 'gene', fn)
+
+
     return res
