@@ -18,10 +18,6 @@ PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
-def gene_analysis_plot_func(plt):
-    plt.xlabel('bla bla bla')
-    plt.ylabel('bli bli bla')
-
 def nmost_common(lists, N, common_column_idx, df_column_names):
     n = N
     n_max = min([len(l) for l in lists])
@@ -98,7 +94,7 @@ class CsvToPandas:
         self.unique_peptides_col_names = unique_peptides_col_names
         self.filtered = filtered
 
-    def gene_analysis(self, N, sample_names=None):
+    def gene_analysis(self, N, title, xlabel, ylabel, sample_names=None):
         gene_abundance_list = []
         column_names = self.get_column_names(LABEL_FREE_QUANT,sample_names)
         for column_name in column_names:
@@ -122,10 +118,13 @@ class CsvToPandas:
                                 kind='bar',
                                 rot=0,
                                 legend=True),
-            'N most common proteins', 
+            title, 
             axis_setup_func = lambda ax: ax.get_xaxis().set_ticklabels([]),
-            plot_setup_func= gene_analysis_plot_func,
-            block=True, fig_filename='test.svg')
+            plot_setup_func= None,
+            xlabel = xlabel,
+            ylabel = ylabel,
+            block=True, 
+            fig_filename=None) #'test.svg')
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
