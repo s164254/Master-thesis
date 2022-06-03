@@ -99,6 +99,13 @@ class CsvToPandas:
 
     def gene_analysis(self, N, title, xlabel, ylabel, sample_names=None):
         gene_abundance_list = []
+        if not sample_names:
+            sample_names = self.sample_names
+        sample_names = sorted(sample_names)
+        
+        sample_names_key = '_'.join([sn.lower() for sn in sample_names])
+        common_proteins = self.args.common_proteins[sample_names_key]
+
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
         for column_name in column_names:
             # create dataframe where all rows have a value > 0 in all abundance columns
@@ -111,7 +118,7 @@ class CsvToPandas:
             # extract gene and abundance value to a list of tuples
             l = list(zip(df[PG_GENES], df[column_name]))
             gene_abundance_list.append(
-                [row for row in l if row[0] in self.args.common_proteins])
+                [row for row in l if row[0] in common_proteins])
 
         res = nmost_common(gene_abundance_list, N, 0,
                            [PG_GENES] + column_names)
@@ -120,12 +127,12 @@ class CsvToPandas:
             lambda df: df.plot(
                 x=PG_GENES, y=column_names, kind='bar', rot=0, legend=True),
             title,
-            axis_setup_func=lambda ax: ax.get_xaxis().set_ticklabels([]),
+            axis_setup_func=None, #lambda ax: ax.get_xaxis().set_ticklabels([]),
             plot_setup_func=None,
             xlabel=xlabel,
             ylabel=ylabel,
             block=True,
-            fig_filename=None)  #'test.svg')
+            fig_filename=self.args.fig_filename('batch_to_batch-common-cellular-analysis.%s.svg' % (sample_names_key,)))
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
