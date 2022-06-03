@@ -19,6 +19,7 @@ PG_PROTEINDESCRIPTIONS_NEWLINE = 'ProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
+
 def nmost_common(lists, N, common_column_idx, df_column_names):
     n = N
     n_max = min([len(l) for l in lists])
@@ -37,14 +38,15 @@ def nmost_common(lists, N, common_column_idx, df_column_names):
 
     # create dict for resuting dataframe
     common = list(sorted(common))
-    d = { df_column_names[0]: common}
-    for lst, column_name in zip(lists,df_column_names[1:]):
-        d[column_name] = [[row for row in lst[:n] if row[common_column_idx]==gene][0][1] for gene in sorted(common)] 
+    d = {df_column_names[0]: common}
+    for lst, column_name in zip(lists, df_column_names[1:]):
+        d[column_name] = [[
+            row for row in lst[:n] if row[common_column_idx] == gene
+        ][0][1] for gene in sorted(common)]
     return pd.DataFrame(d)
 
 
 class CsvToPandas:
-
     def __init__(self, args) -> None:
         args = isinstance(
             args, str) and experiment_args.to_experiment_args(args) or args
@@ -97,7 +99,7 @@ class CsvToPandas:
 
     def gene_analysis(self, N, title, xlabel, ylabel, sample_names=None):
         gene_abundance_list = []
-        column_names = self.get_column_names(LABEL_FREE_QUANT,sample_names)
+        column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
         for column_name in column_names:
             # create dataframe where all rows have a value > 0 in all abundance columns
             df = self.filtered
@@ -111,21 +113,19 @@ class CsvToPandas:
             gene_abundance_list.append(
                 [row for row in l if row[0] in self.args.common_proteins])
 
-        res = nmost_common(gene_abundance_list, N, 0, [PG_GENES] + column_names) 
+        res = nmost_common(gene_abundance_list, N, 0,
+                           [PG_GENES] + column_names)
         plotutils.dataframe_plot(
             res,
-            lambda df: df.plot(x=PG_GENES,
-                                y=column_names,
-                                kind='bar',
-                                rot=0,
-                                legend=True),
-            title, 
-            axis_setup_func = lambda ax: ax.get_xaxis().set_ticklabels([]),
-            plot_setup_func= None,
-            xlabel = xlabel,
-            ylabel = ylabel,
-            block=True, 
-            fig_filename=None) #'test.svg')
+            lambda df: df.plot(
+                x=PG_GENES, y=column_names, kind='bar', rot=0, legend=True),
+            title,
+            axis_setup_func=lambda ax: ax.get_xaxis().set_ticklabels([]),
+            plot_setup_func=None,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            block=True,
+            fig_filename=None)  #'test.svg')
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
@@ -187,21 +187,26 @@ class CsvToPandas:
     def to_gene_list(self):
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
             # sort by values in label-free quant column for sample_name
-            df = self.filtered.sort_values(by=[column_name], ascending=False).copy()
+            df = self.filtered.sort_values(by=[column_name],
+                                           ascending=False).copy()
 
             # copy rows with abundance value > 0 to a new dataframe
             df = df[df[column_name] > 0].copy()
 
             # get list of corresponding gene id's but remove rows with invalid gene id's (NAN)
-            genes = [(g,d) for g,d in zip(df[PG_GENES].values,df[PG_PROTEINDESCRIPTIONS].values) if isinstance(g, str)]
+            genes = [(g, d) for g, d in zip(df[PG_GENES].values,
+                                            df[PG_PROTEINDESCRIPTIONS].values)
+                     if isinstance(g, str)]
 
             # write list of genes to CSV file
             # todo: write to file in experiment output dir.
-            ft.to_file(self.args.gene_filename('%s.genelistdesc.csv' % (column_name, )),
-                       '\n'.join(['%s,%s' % x for x in genes]))
-            ft.to_file(self.args.gene_filename('%s.genelist.csv' % (column_name, )),
-                       '\n'.join([x[0] for x in genes]))
-
+            ft.to_file(
+                self.args.gene_filename('%s.genelistdesc.csv' %
+                                        (column_name, )),
+                '\n'.join(['%s,%s' % x for x in genes]))
+            ft.to_file(
+                self.args.gene_filename('%s.genelist.csv' % (column_name, )),
+                '\n'.join([x[0] for x in genes]))
 
     def to_csv(self, csv_file) -> None:
         self.filtered.to_csv(csv_file)
