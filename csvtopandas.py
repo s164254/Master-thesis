@@ -15,6 +15,7 @@ ATTR_RE = '([_a-zA-Z0-9]+)\.raw\.PG\.(.+)'
 UNIQUE_PEPTIDES = 'UniquePeptides'
 LABEL_FREE_QUANT = 'Label-Free Quant'
 PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
+PG_PROTEINDESCRIPTIONS_NEWLINE = 'ProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
@@ -72,7 +73,7 @@ class CsvToPandas:
         # put newlines in protein description
         protein_desc_column = csv.columns.tolist().index(
             PG_PROTEINDESCRIPTIONS)
-        filtered[filtered.columns[protein_desc_column]] = filtered.apply(
+        filtered[PG_PROTEINDESCRIPTIONS_NEWLINE] = filtered.apply(
             lambda x: re.sub('\s+', '\n', x[protein_desc_column]), axis=1)
 
         # for the remaining rows set label-free quant to 0 if the corresponding unique peptides value is either 0, 1 or NAN
@@ -184,28 +185,23 @@ class CsvToPandas:
                 block=True)
 
     def to_gene_list(self):
-        gene_list = []
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
             # sort by values in label-free quant column for sample_name
-            df = self.filtered.sort_values(by=[column_name], ascending=False)
+            df = self.filtered.sort_values(by=[column_name], ascending=False).copy()
 
             # copy rows with abundance value > 0 to a new dataframe
             df = df[df[column_name] > 0].copy()
 
             # get list of corresponding gene id's but remove rows with invalid gene id's (NAN)
-            genes = list(
-                set([x for x in df[PG_GENES].values if isinstance(x, str)]))
+            genes = [(g,d) for g,d in zip(df[PG_GENES].values,df[PG_PROTEINDESCRIPTIONS].values) if isinstance(g, str)]
 
             # write list of genes to CSV file
             # todo: write to file in experiment output dir.
-            ft.to_file(self.args.gene_filename('%s.csv' % (column_name, )),
-                       '\n'.join(sorted(genes)))
+            ft.to_file(self.args.gene_filename('%s.genelistdesc.csv' % (column_name, )),
+                       '\n'.join(['%s,%s' % x for x in genes]))
+            ft.to_file(self.args.gene_filename('%s.genelist.csv' % (column_name, )),
+                       '\n'.join([x[0] for x in genes]))
 
-            # append to our total list of genes
-            gene_list.append(genes)
-
-        ft.to_file(self.args.gene_filename('common.csv'),
-                   '\n'.join(sorted(set.intersection(*map(set, gene_list)))))
 
     def to_csv(self, csv_file) -> None:
         self.filtered.to_csv(csv_file)
@@ -217,13 +213,13 @@ class CsvToPandas:
         for protein_description_filter in protein_description_filters:
             # select the rows that match the protein_description_filter
             filtered = self.filtered[protein_description_filter(
-                self.filtered[PG_PROTEINDESCRIPTIONS])]
+                self.filtered[PG_PROTEINDESCRIPTIONS_NEWLINE])]
 
             column_names = self.get_column_names(LABEL_FREE_QUANT,
                                                  sample_names)
             all_column_values = [
                 sorted(list(
-                    zip(filtered[PG_PROTEINDESCRIPTIONS],
+                    zip(filtered[PG_PROTEINDESCRIPTIONS_NEWLINE],
                         filtered[column_name])),
                        key=lambda x: x[1],
                        reverse=True) for column_name in column_names
