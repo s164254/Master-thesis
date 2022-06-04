@@ -1,6 +1,7 @@
 from locale import normalize
 from math import isnan
 from operator import index
+from matplotlib.pyplot import legend, plot
 import pandas as pd
 import re
 import plotutils
@@ -21,7 +22,11 @@ PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
 
-def nmost_common(lists, N, common_column_idx, df_column_names, normalize=False):
+def nmost_common(lists,
+                 N,
+                 common_column_idx,
+                 df_column_names,
+                 normalize=False):
     n = N
     n_max = min([len(l) for l in lists])
     common = set.intersection(
@@ -42,10 +47,13 @@ def nmost_common(lists, N, common_column_idx, df_column_names, normalize=False):
     for gene in sorted(common):
         row_values = []
         for lst in lists:
-            row_values.append([row[(common_column_idx+1) % 2] for row in lst[:n] if row[common_column_idx] == gene][0])
+            row_values.append([
+                row[(common_column_idx + 1) % 2] for row in lst[:n]
+                if row[common_column_idx] == gene
+            ][0])
         if normalize:
             mx = max(row_values)
-            row_values = [v / mx for v in row_values] # brug numpy
+            row_values = [v / mx for v in row_values]  # brug numpy
         rows.append(row_values)
 
     common = list(sorted(common))
@@ -108,7 +116,7 @@ class CsvToPandas:
         self.unique_peptides_col_names = unique_peptides_col_names
         self.filtered = filtered
 
-    def gene_analysis(self, N, title, xlabel, ylabel, sample_names=None):
+    def cellular_analysis(self, N, title, xlabel, ylabel, sample_names=None):
         gene_abundance_list = []
         if not sample_names:
             sample_names = self.sample_names
@@ -131,23 +139,28 @@ class CsvToPandas:
             gene_abundance_list.append(
                 [row for row in l if row[0] in common_proteins])
 
-        res = nmost_common(gene_abundance_list, N, 0,
-                           [PG_GENES] + column_names, normalize=True)
+        res = nmost_common(gene_abundance_list,
+                           N,
+                           0, [PG_GENES] + column_names,
+                           normalize=True)
         fig_filename = self.args.fig_filename(
-                'batch_to_batch-common-cellular-analysis.%s.png' %
-                (sample_names_key, ))
+            'batch_to_batch-common-cellular-analysis.%s.png' %
+            (sample_names_key, ))
         plotutils.dataframe_plot(
             res,
-            lambda df: df.plot(
-                x=PG_GENES, y=column_names, kind='bar', rot=0, legend=True, ylim=(0,1.2)),
+            lambda df: df.plot(x=PG_GENES,
+                               y=column_names,
+                               kind='bar',
+                               rot=0,
+                               legend=True,
+                               ylim=(0, 1.2)),
             title,
             axis_setup_func=None,  #lambda ax: ax.get_xaxis().set_ticklabels([]),
             plot_setup_func=None,
             xlabel=xlabel,
             ylabel=ylabel,
             block=True,
-            fig_filename=None #fig_filename
-        ) 
+            fig_filename=fig_filename)
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
@@ -173,8 +186,12 @@ class CsvToPandas:
         csv_samplename = [c for c in self.col_info if c[3] == column_name][0]
         pass
 
-    def fold_analysis(self, sample_names, group_name, use_filter,
-                      protein_description_filter, normalize=True):
+    def fold_analysis(self,
+                      sample_names,
+                      group_name,
+                      use_filter,
+                      protein_description_filter,
+                      normalize=True):
         # create dataframe where all rows have a value > 0 in all abundance columns
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
@@ -207,16 +224,26 @@ class CsvToPandas:
             return
 
         if normalize:
-            plot_df = plot_df[plot_df[column_names]].div(plot_df[plot_df[column_names]].max(axis=1))
+            # add max column to df
+            plot_df['max'] = plot_df[column_names].max(axis=1)
+            # normalize values in each row
+            plot_df[column_names] = plot_df[column_names].div(plot_df['max'],
+                                                              axis=0)
 
+        fig_filename = self.args.fig_filename('ecm_foldchange.%s.%s.png' %
+                                              (fig_samplenames, group_name))
         plotutils.dataframe_plot(
             plot_df,
-            lambda x: x.set_index(plot_df[PG_PROTEINDESCRIPTIONS_NEWLINE]).
-            plot(y=RATIO, kind='bar', rot=0, legend=False, ylim = normalize and (0,1.2) or None),
+            lambda x: x.set_index(plot_df[PG_PROTEINDESCRIPTIONS_NEWLINE]
+                                  ).plot(y=column_names,
+                                         kind='bar',
+                                         rot=0,
+                                         legend=True,
+                                         ylim=normalize and (0, 1.2) or None),
             '',
-            axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
-            fig_filename=self.args.fig_filename('ecm_foldchange.%s.%s.png' %
-                                                (fig_samplenames, group_name)),
+            axis_setup_func=not normalize and
+            (lambda ax: ax.bar_label(ax.containers[0])) or None,
+            fig_filename=None,  #fig_filename
             block=True)
 
     def to_gene_list(self):
