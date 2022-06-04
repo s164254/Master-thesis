@@ -13,7 +13,7 @@ exp = csvtopandas.CsvToPandas('proteomics_experiment_1')
 
 N = 10
 # I,III,IV,V,VI
-collagen_regex = 'Collagen.+ (I|V)[I|V]*[^\S|$]'
+collagen_regex = 'Collagen.+ (I|V){1,3}[^\S|$]'
 #collagen_regex = 'Collagen.+ [(I)|(III)|(IV)|(V)|(VI)][^\S|$]'
 protein_groups = ('Collagen','Laminin','Fibronectin','Elastin','Proteoglycan')
 
