@@ -133,7 +133,7 @@ class CsvToPandas:
             ylabel=ylabel,
             block=True,
             fig_filename=self.args.fig_filename(
-                'batch_to_batch-common-cellular-analysis.%s.svg' %
+                'batch_to_batch-common-cellular-analysis.%s.png' %
                 (sample_names_key, )))
 
     def get_column_names(self, attr_name, sample_names=None):
@@ -160,7 +160,8 @@ class CsvToPandas:
         csv_samplename = [c for c in self.col_info if c[3] == column_name][0]
         pass
 
-    def fold_analysis(self, sample_names, protein_description_filters):
+    def fold_analysis(self, sample_names, group_name,
+                      protein_description_filter):
         # create dataframe where all rows have a value > 0 in all abundance columns
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
@@ -176,21 +177,23 @@ class CsvToPandas:
         fold_frame_ratio_filtered = df[above | below]
 
         # make a plot for each protein_description_filter
-        for protein_description_filter in protein_description_filters:
-            plot_df = fold_frame_ratio_filtered[
-                protein_description_filter(
-                    fold_frame_ratio_filtered[PG_PROTEINDESCRIPTIONS])].copy()
+        plot_df = fold_frame_ratio_filtered[protein_description_filter(
+            fold_frame_ratio_filtered[PG_PROTEINDESCRIPTIONS])].copy()
 
-            print(len(plot_df))
-            #continue
+        if len(plot_df) == 0:
+            return
 
-            plotutils.dataframe_plot(
-                plot_df,
-                lambda x: x.set_index(plot_df[PG_PROTEINDESCRIPTIONS_NEWLINE]).plot(
-                    y=RATIO, kind='bar', rot=0, legend=False),
-                '',
-                axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
-                block=True)
+        fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
+
+        plotutils.dataframe_plot(
+            plot_df,
+            lambda x: x.set_index(plot_df[PG_PROTEINDESCRIPTIONS_NEWLINE]).
+            plot(y=RATIO, kind='bar', rot=0, legend=False),
+            '',
+            axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
+            fig_filename=self.args.fig_filename('ecm_foldchange.%s.%s.png' %
+                                                (fig_samplenames, group_name)),
+            block=True)
 
     def to_gene_list(self):
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
