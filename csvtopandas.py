@@ -174,7 +174,7 @@ class CsvToPandas:
         pass
 
     def fold_analysis(self, sample_names, group_name, use_filter,
-                      protein_description_filter):
+                      protein_description_filter, normalize=True):
         # create dataframe where all rows have a value > 0 in all abundance columns
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
@@ -206,10 +206,13 @@ class CsvToPandas:
         if len(plot_df) == 0:
             return
 
+        if normalize:
+            plot_df = plot_df[plot_df[column_names]].div(plot_df[plot_df[column_names]].max(axis=1))
+
         plotutils.dataframe_plot(
             plot_df,
             lambda x: x.set_index(plot_df[PG_PROTEINDESCRIPTIONS_NEWLINE]).
-            plot(y=RATIO, kind='bar', rot=0, legend=False),
+            plot(y=RATIO, kind='bar', rot=0, legend=False, ylim = normalize and (0,1.2) or None),
             '',
             axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
             fig_filename=self.args.fig_filename('ecm_foldchange.%s.%s.png' %
