@@ -37,4 +37,4 @@ all_samples = (
 for samples in all_samples:
     for g, f in zip(protein_groups, protein_description_filters):
         g, use_filter = g
-        exp.fold_analysis(samples, g, use_filter, f)
+        exp.fold_analysis(samples, g, use_filter, f, normalize=True)

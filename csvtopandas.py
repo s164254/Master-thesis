@@ -22,6 +22,10 @@ PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
 
+def set_bar_labels(ax, fmt='%.2f'):
+    for c in ax.containers: 
+        ax.bar_label(c, fmt=fmt)
+
 def nmost_common(lists,
                  N,
                  common_column_idx,
@@ -241,8 +245,8 @@ class CsvToPandas:
                                          legend=True,
                                          ylim=normalize and (0, 1.2) or None),
             '',
-            axis_setup_func=not normalize and
-            (lambda ax: ax.bar_label(ax.containers[0])) or None,
+            axis_setup_func=True and
+            (lambda ax: set_bar_labels(ax)) or None,
             fig_filename=None,  #fig_filename
             block=True)
 
