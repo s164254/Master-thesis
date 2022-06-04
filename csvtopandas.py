@@ -160,7 +160,7 @@ class CsvToPandas:
         csv_samplename = [c for c in self.col_info if c[3] == column_name][0]
         pass
 
-    def fold_analysis(self, sample_names, group_name,
+    def fold_analysis(self, sample_names, group_name, use_filter,
                       protein_description_filter):
         # create dataframe where all rows have a value > 0 in all abundance columns
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
@@ -172,18 +172,26 @@ class CsvToPandas:
         df[RATIO] = df[column_names[0]] / df[column_names[1]]
 
         # keep rows with ratio > 2 or ratio < 0.5
-        above = df[RATIO] > 2
-        below = df[RATIO] < 0.5
-        fold_frame_ratio_filtered = df[above | below]
+        if use_filter:
+            above = df[RATIO] > 2
+            below = df[RATIO] < 0.5
+            df = df[above | below]
+        else:
+            df = df[df[RATIO] > 0]
 
         # make a plot for each protein_description_filter
-        plot_df = fold_frame_ratio_filtered[protein_description_filter(
-            fold_frame_ratio_filtered[PG_PROTEINDESCRIPTIONS])].copy()
+        fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
+        try:
+            plot_df = df[protein_description_filter(
+                df[PG_PROTEINDESCRIPTIONS])].copy()
+        except Exception as ex:
+            df.to_csv(
+                self.args.fig_filename('ecm_foldchange.%s.%s.err.csv' %
+                                       (fig_samplenames, group_name)))
+            return
 
         if len(plot_df) == 0:
             return
-
-        fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
 
         plotutils.dataframe_plot(
             plot_df,
