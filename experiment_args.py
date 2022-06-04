@@ -34,9 +34,9 @@ def to_experiment_args(experiment_name):
     if not path.exists(output_dir):
         makedirs(output_dir)
 
-    res['experiment_output_dir'] = path.join(output_dir, experiment_name)
-    res['gene_filename'] = lambda fn: path.join(res.experiment_output_dir,
-                                                'gene', fn)
-    res['fig_filename'] = lambda fn: path.join(res.experiment_output_dir, fn)
+    res['experiment_output_dir'] = ft.ensure_path_exists(path.join(output_dir, experiment_name))
+    res['gene_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir,
+                                                'gene', fn))
+    res['fig_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir, fn))
 
     return res

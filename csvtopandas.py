@@ -1,3 +1,4 @@
+from locale import normalize
 from math import isnan
 from operator import index
 import pandas as pd
@@ -20,7 +21,7 @@ PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
 
-def nmost_common(lists, N, common_column_idx, df_column_names):
+def nmost_common(lists, N, common_column_idx, df_column_names, normalize=False):
     n = N
     n_max = min([len(l) for l in lists])
     common = set.intersection(
@@ -37,12 +38,22 @@ def nmost_common(lists, N, common_column_idx, df_column_names):
     # sorteret
 
     # create dict for resuting dataframe
+    rows = []
+    for gene in sorted(common):
+        row_values = []
+        for lst in lists:
+            row_values.append([row[(common_column_idx+1) % 2] for row in lst[:n] if row[common_column_idx] == gene][0])
+        if normalize:
+            mx = max(row_values)
+            row_values = [v / mx for v in row_values] # brug numpy
+        rows.append(row_values)
+
     common = list(sorted(common))
     d = {df_column_names[0]: common}
+    idx = 0
     for lst, column_name in zip(lists, df_column_names[1:]):
-        d[column_name] = [[
-            row for row in lst[:n] if row[common_column_idx] == gene
-        ][0][1] for gene in sorted(common)]
+        d[column_name] = [row[idx] for row in rows]
+        idx += 1
     return pd.DataFrame(d)
 
 
@@ -121,20 +132,22 @@ class CsvToPandas:
                 [row for row in l if row[0] in common_proteins])
 
         res = nmost_common(gene_abundance_list, N, 0,
-                           [PG_GENES] + column_names)
+                           [PG_GENES] + column_names, normalize=True)
+        fig_filename = self.args.fig_filename(
+                'batch_to_batch-common-cellular-analysis.%s.png' %
+                (sample_names_key, ))
         plotutils.dataframe_plot(
             res,
             lambda df: df.plot(
-                x=PG_GENES, y=column_names, kind='bar', rot=0, legend=True),
+                x=PG_GENES, y=column_names, kind='bar', rot=0, legend=True, ylim=(0,1.2)),
             title,
             axis_setup_func=None,  #lambda ax: ax.get_xaxis().set_ticklabels([]),
             plot_setup_func=None,
             xlabel=xlabel,
             ylabel=ylabel,
             block=True,
-            fig_filename=self.args.fig_filename(
-                'batch_to_batch-common-cellular-analysis.%s.png' %
-                (sample_names_key, )))
+            fig_filename=None #fig_filename
+        ) 
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
