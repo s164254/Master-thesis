@@ -102,7 +102,7 @@ class CsvToPandas:
         if not sample_names:
             sample_names = self.sample_names
         sample_names = sorted(sample_names)
-        
+
         sample_names_key = '_'.join([sn.lower() for sn in sample_names])
         common_proteins = self.args.common_proteins[sample_names_key]
 
@@ -127,12 +127,14 @@ class CsvToPandas:
             lambda df: df.plot(
                 x=PG_GENES, y=column_names, kind='bar', rot=0, legend=True),
             title,
-            axis_setup_func=None, #lambda ax: ax.get_xaxis().set_ticklabels([]),
+            axis_setup_func=None,  #lambda ax: ax.get_xaxis().set_ticklabels([]),
             plot_setup_func=None,
             xlabel=xlabel,
             ylabel=ylabel,
             block=True,
-            fig_filename=self.args.fig_filename('batch_to_batch-common-cellular-analysis.%s.svg' % (sample_names_key,)))
+            fig_filename=self.args.fig_filename(
+                'batch_to_batch-common-cellular-analysis.%s.svg' %
+                (sample_names_key, )))
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
@@ -158,37 +160,36 @@ class CsvToPandas:
         csv_samplename = [c for c in self.col_info if c[3] == column_name][0]
         pass
 
-    def fold_analysis(self, groups, protein_description_filters):
+    def fold_analysis(self, sample_names, protein_description_filters):
         # create dataframe where all rows have a value > 0 in all abundance columns
-        fold_frame = self.filtered[(
-            self.filtered[self.abundance_col_names].applymap(
-                lambda value: value > 0 and not isnan(value)).all(1))]
+        column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
-        # calculate mean of abundance for each of the sample groups
-        for mean_col, sample_names in groups:
-            col_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
-            fold_frame[mean_col] = fold_frame[col_names].mean(
-                axis=1)  # remember axis=1
+        df = self.filtered[(self.filtered[column_names].applymap(
+            lambda value: value > 0).all(1))].copy()
 
         # calculate fraction of the abundance mean columns
-        fold_frame[RATIO] = fold_frame[groups[0][0]] / fold_frame[groups[1][0]]
+        df[RATIO] = df[column_names[0]] / df[column_names[1]]
 
         # keep rows with ratio > 2 or ratio < 0.5
-        above = fold_frame[RATIO] > 2
-        below = fold_frame[RATIO] < 0.5
-        fold_frame_ratio_filtered = fold_frame[above | below]
+        above = df[RATIO] > 2
+        below = df[RATIO] < 0.5
+        fold_frame_ratio_filtered = df[above | below]
 
         # make a plot for each protein_description_filter
         for protein_description_filter in protein_description_filters:
-            fold_frame_filtered = fold_frame_ratio_filtered[
+            plot_df = fold_frame_ratio_filtered[
                 protein_description_filter(
-                    fold_frame_ratio_filtered[PG_PROTEINDESCRIPTIONS])]
+                    fold_frame_ratio_filtered[PG_PROTEINDESCRIPTIONS])].copy()
+
+            print(len(plot_df))
+            #continue
 
             plotutils.dataframe_plot(
-                fold_frame_filtered,
-                lambda df: df.set_index(fold_frame_filtered.columns[2]).plot(
+                plot_df,
+                lambda x: x.set_index(plot_df[PG_PROTEINDESCRIPTIONS_NEWLINE]).plot(
                     y=RATIO, kind='bar', rot=0, legend=False),
                 '',
+                axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
                 block=True)
 
     def to_gene_list(self):
