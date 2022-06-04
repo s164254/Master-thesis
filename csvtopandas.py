@@ -23,8 +23,9 @@ RATIO = 'ratio'
 
 
 def set_bar_labels(ax, fmt='%.2f'):
-    for c in ax.containers: 
+    for c in ax.containers:
         ax.bar_label(c, fmt=fmt)
+
 
 def nmost_common(lists,
                  N,
@@ -245,9 +246,8 @@ class CsvToPandas:
                                          legend=True,
                                          ylim=normalize and (0, 1.2) or None),
             '',
-            axis_setup_func=True and
-            (lambda ax: set_bar_labels(ax)) or None,
-            fig_filename=None,  #fig_filename
+            axis_setup_func=True and (lambda ax: set_bar_labels(ax)) or None,
+            fig_filename=fig_filename,
             block=True)
 
     def to_gene_list(self):
