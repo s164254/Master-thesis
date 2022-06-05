@@ -1,0 +1,6 @@
+Fa1a_500ng=ExpandPro A3M
+Fa2a_500ng=ExpandPro A4M
+T1_500ng=ExpandPro A372
+T2_500ng=ExpandPro A396
+T3_500ng=ExpandPro A3120
+T4_500ng=ExpandPro A3sw120
