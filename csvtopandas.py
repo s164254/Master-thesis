@@ -282,6 +282,9 @@ class CsvToPandas:
             # start by removing rows where sample does not have a LABEL_FREE_QUANT value
             df = self.filtered[self.filtered[column_name] > 0].copy()
 
+            df = df[protein_description_filter(
+                df[PG_PROTEINDESCRIPTIONS])].copy()
+
             uniprotid = df[PG_GENES].values
             protein_desc = df[PG_PROTEINDESCRIPTIONS].values
 
