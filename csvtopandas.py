@@ -187,9 +187,16 @@ class CsvToPandas:
 
         return matches and matches[0] or None
 
-    def columnname_to_samplename(self, column_name):
-        csv_samplename = [c for c in self.col_info if c[3] == column_name][0]
-        pass
+    def get_output_name(self, column_name):
+        csv_samplename = [c for c in self.col_info if c[3] == column_name]
+        if len(csv_samplename) != 1:
+            raise Exception('get_output_name: expected 1 sample name matching %s, got %d' % (column_name, len(csv_samplename)))
+
+        matches = [v for k,v in self.args.sample_name_lookup.items() if csv_samplename[0][3].find('%s.' % (k,))>0]
+        if len(matches) != 1:
+            raise Exception('get_output_name: expected 1 matching lookup sample name key, got %d' % (csv_samplename[0], len(matches)))
+
+        return matches[0]
 
     def fold_analysis(self,
                       sample_names,
@@ -237,18 +244,21 @@ class CsvToPandas:
 
         fig_filename = self.args.fig_filename('ecm_foldchange.%s.%s.png' %
                                               (fig_samplenames, group_name))
-        plotutils.dataframe_plot(
-            plot_df,
-            lambda x: x.set_index(plot_df[PG_PROTEINDESCRIPTIONS_NEWLINE]
-                                  ).plot(y=column_names,
-                                         kind='bar',
-                                         rot=0,
-                                         legend=True,
-                                         ylim=normalize and (0, 1.2) or None),
-            '',
-            axis_setup_func=True and (lambda ax: set_bar_labels(ax)) or None,
-            fig_filename=fig_filename,
-            block=True)
+
+        self.to_output_and_plot(
+            plot_df, [PG_PROTEINDESCRIPTIONS_NEWLINE], column_names,
+            lambda inp: plotutils.dataframe_plot(
+                inp[0],
+                lambda x: x.set_index(inp[0][PG_PROTEINDESCRIPTIONS_NEWLINE]).
+                plot(y=inp[1],
+                     kind='bar',
+                     rot=0,
+                     legend=True,
+                     ylim=normalize and (0, 1.2) or None),
+                '',
+                axis_setup_func=set_bar_labels,
+                fig_filename=fig_filename,
+                block=True))
 
     def to_gene_list(self):
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
@@ -329,3 +339,17 @@ class CsvToPandas:
                                    legend=False),
                 'N most common proteins',
                 block=True)
+
+    def to_output_dataframe(self, df, columns, sample_names):
+        res = pd.DataFrame(df[columns])
+        output_sample_names = []
+        for sample_name in sample_names:
+            output_sample_name = self.get_output_name(sample_name)
+            output_sample_names.append(output_sample_name)
+            res[output_sample_name] = df[sample_name]
+        return res, output_sample_names
+
+    def to_output_and_plot(self, df, columns, sample_names, plot_func):
+        ret = df_output, output_sample_names = self.to_output_dataframe(
+            df, columns, sample_names)
+        plot_func(ret)

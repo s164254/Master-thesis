@@ -29,6 +29,10 @@ protein_groups = (
     ('Proteoglycan', False),
 )
 
+# ('Collagen', False),
+# ('Laminin', False),
+# ('Fibronectin', False),
+
 protein_description_filters = [col_contains(collagen_regex)] + list(
     map(col_starts_with, protein_groups[1:]))
 
