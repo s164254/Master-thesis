@@ -402,6 +402,43 @@ class CsvToPandas:
                 'N most common proteins',
                 block=True)
 
+    def generate_cellular_file(self):
+        # if self.args.common_proteins:
+        #     return
+
+        if not any([
+                c for c in self.filtered.columns
+                if c.upper() == 'PG.CellularComponent'.upper()
+        ]):
+            return
+
+        search_for_text = [
+            s.lower()
+            for s in ('extracellular', 'basement', 'collagen', 'fibronectin',
+                      'laminin', 'Elastin', 'Proteoglycan')
+        ]
+        has_match = lambda txt: any(
+            (1 for search_for in search_for_text
+             if isinstance(txt, str) and search_for.find(txt.lower()) >= 0))
+        search_columns = [
+            'PG.CellularComponent', 'PG.BiologicalProcess',
+            'PG.MolecularFunction', PG_PROTEINDESCRIPTIONS
+        ]
+        rows = self.filtered[search_columns].values
+        non_matching_uniprotids = [
+            uniprotid
+            for row, uniprotid in zip(rows, self.filtered[PG_GENES].values)
+            if isinstance(uniprotid, str) and not any(
+                (1 for col in rows if isinstance(col, str) and has_match(col)))
+        ]
+        print('Cellular:%s, Extracellular:%d' %
+              (len(non_matching_uniprotids),
+               len(self.filtered) - len(non_matching_uniprotids)))
+        ft.to_file(
+            ft.msdata_filename('%s.cellular.txt' %
+                               (self.args.experiment_name, )),
+            '|'.join(non_matching_uniprotids))
+
     def to_output_dataframe(self, df, columns, sample_names):
         res = pd.DataFrame(df[columns])
         output_sample_names = []

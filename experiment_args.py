@@ -26,6 +26,7 @@ attr_actions = (
 
 def to_experiment_args(experiment_name):
     res = dotdict({})
+    res['experiment_name'] = experiment_name
     res['filename'] = ft.msdata_filename(experiment_name, 'csv')
     for attr_name, action in attr_actions:
         res[attr_name] = action(experiment_name)
