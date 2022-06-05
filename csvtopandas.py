@@ -21,8 +21,10 @@ PG_PROTEINDESCRIPTIONS_NEWLINE = 'ProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
+
 def possible_nan_2_str(v):
     return isinstance(v, float) and 'NAN' or v
+
 
 def set_bar_labels(ax, fmt='%.2f'):
     for c in ax.containers:
@@ -295,12 +297,30 @@ class CsvToPandas:
                 if value <= 0
             ])) for i, row in enumerate(other_values)]
             other_missing = [
-                ','.join((possible_nan_2_str(uniprotid[x[0]]), possible_nan_2_str(protein_desc[x[0]]), x[1]))
+                ','.join((possible_nan_2_str(uniprotid[x[0]]),
+                          possible_nan_2_str(protein_desc[x[0]]), x[1]))
                 for x in other_missing if x[1]
             ]
             ft.to_file(
-                self.args.common_filename('%s.%s' % (group_name, '_'.join(column_display_names))),
+                self.args.common_filename(
+                    '%s.%s.csv' %
+                    (group_name, '_'.join(column_display_names))),
                 '\n'.join(other_missing))
+
+        # one file with all sample names
+        df = df[protein_description_filter(df[PG_PROTEINDESCRIPTIONS])].copy()
+        column_display_names = map(self.get_output_name, column_names)
+        for column_name, column_display_name in zip(column_names,
+                                                    column_display_names):
+            df[column_name] = df[column_name].apply(
+                lambda value: value > 0 and column_display_name or '')
+        output_columns = [PG_GENES, PG_PROTEINDESCRIPTIONS] + column_names
+        output = df[output_columns].values
+        ft.to_file(
+            self.args.common_filename('%s.csv' % (group_name, )), '\n'.join([
+                ','.join([possible_nan_2_str(v) for v in row])
+                for row in output
+            ]))
 
     def to_gene_list(self):
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
@@ -381,6 +401,43 @@ class CsvToPandas:
                                    legend=False),
                 'N most common proteins',
                 block=True)
+
+    def generate_cellular_file(self):
+        # if self.args.common_proteins:
+        #     return
+
+        if not any([
+                c for c in self.filtered.columns
+                if c.upper() == 'PG.CellularComponent'.upper()
+        ]):
+            return
+
+        search_for_text = [
+            s.lower()
+            for s in ('extracellular', 'basement', 'collagen', 'fibronectin',
+                      'laminin', 'Elastin', 'Proteoglycan')
+        ]
+        has_match = lambda txt: any(
+            (1 for search_for in search_for_text
+             if isinstance(txt, str) and search_for.find(txt.lower()) >= 0))
+        search_columns = [
+            'PG.CellularComponent', 'PG.BiologicalProcess',
+            'PG.MolecularFunction', PG_PROTEINDESCRIPTIONS
+        ]
+        rows = self.filtered[search_columns].values
+        non_matching_uniprotids = [
+            uniprotid
+            for row, uniprotid in zip(rows, self.filtered[PG_GENES].values)
+            if isinstance(uniprotid, str) and not any(
+                (1 for col in rows if isinstance(col, str) and has_match(col)))
+        ]
+        print('Cellular:%s, Extracellular:%d' %
+              (len(non_matching_uniprotids),
+               len(self.filtered) - len(non_matching_uniprotids)))
+        ft.to_file(
+            ft.msdata_filename('%s.cellular.txt' %
+                               (self.args.experiment_name, )),
+            '|'.join(non_matching_uniprotids))
 
     def to_output_dataframe(self, df, columns, sample_names):
         res = pd.DataFrame(df[columns])
