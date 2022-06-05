@@ -38,5 +38,7 @@ def to_experiment_args(experiment_name):
     res['gene_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir,
                                                 'gene', fn))
     res['fig_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir, fn))
+    res['common_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir,
+                                                'ecm_common', fn))
 
     return res

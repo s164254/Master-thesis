@@ -21,6 +21,8 @@ PG_PROTEINDESCRIPTIONS_NEWLINE = 'ProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
+def possible_nan_2_str(v):
+    return isinstance(v, float) and 'NAN' or v
 
 def set_bar_labels(ax, fmt='%.2f'):
     for c in ax.containers:
@@ -190,11 +192,18 @@ class CsvToPandas:
     def get_output_name(self, column_name):
         csv_samplename = [c for c in self.col_info if c[3] == column_name]
         if len(csv_samplename) != 1:
-            raise Exception('get_output_name: expected 1 sample name matching %s, got %d' % (column_name, len(csv_samplename)))
+            raise Exception(
+                'get_output_name: expected 1 sample name matching %s, got %d' %
+                (column_name, len(csv_samplename)))
 
-        matches = [v for k,v in self.args.sample_name_lookup.items() if csv_samplename[0][3].find('%s.' % (k,))>0]
+        matches = [
+            v for k, v in self.args.sample_name_lookup.items()
+            if csv_samplename[0][3].find('%s.' % (k, )) > 0
+        ]
         if len(matches) != 1:
-            raise Exception('get_output_name: expected 1 matching lookup sample name key, got %d' % (csv_samplename[0], len(matches)))
+            raise Exception(
+                'get_output_name: expected 1 matching lookup sample name key, got %d'
+                % (csv_samplename[0], len(matches)))
 
         return matches[0]
 
@@ -259,6 +268,36 @@ class CsvToPandas:
                 axis_setup_func=set_bar_labels,
                 fig_filename=fig_filename,
                 block=True))
+
+    def ecm_common(self, sample_names, group_name, use_filter,
+                   protein_description_filter):
+        column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
+        for column_name in column_names:
+            other_column_names = [
+                cn for cn in column_names if cn != column_name
+            ]
+            column_display_names = map(self.get_output_name,
+                                       [column_name] + other_column_names)
+
+            # start by removing rows where sample does not have a LABEL_FREE_QUANT value
+            df = self.filtered[self.filtered[column_name] > 0].copy()
+
+            uniprotid = df[PG_GENES].values
+            protein_desc = df[PG_PROTEINDESCRIPTIONS].values
+
+            other_values = df[other_column_names].values
+            other_missing = [(i, ' '.join([
+                self.get_output_name(other_column_name)
+                for value, other_column_name in zip(row, other_column_names)
+                if value <= 0
+            ])) for i, row in enumerate(other_values)]
+            other_missing = [
+                ','.join((possible_nan_2_str(uniprotid[x[0]]), possible_nan_2_str(protein_desc[x[0]]), x[1]))
+                for x in other_missing if x[1]
+            ]
+            ft.to_file(
+                self.args.common_filename('%s.%s' % (group_name, '_'.join(column_display_names))),
+                '\n'.join(other_missing))
 
     def to_gene_list(self):
         for column_name in self.get_column_names(LABEL_FREE_QUANT):
@@ -350,6 +389,5 @@ class CsvToPandas:
         return res, output_sample_names
 
     def to_output_and_plot(self, df, columns, sample_names, plot_func):
-        ret = df_output, output_sample_names = self.to_output_dataframe(
-            df, columns, sample_names)
+        ret = self.to_output_dataframe(df, columns, sample_names)
         plot_func(ret)
