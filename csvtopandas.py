@@ -129,15 +129,10 @@ class CsvToPandas:
         for abundance_col_name, unique_peptides_col_name in zip(
                 abundance_col_names, unique_peptides_col_names):
             filtered[abundance_col_name] = filtered.apply(
-                lambda x: 0 if is_unique_peptides_nan(x[
-                    unique_peptides_col_name]) else x[abundance_col_name],
+                lambda x: 0
+                if (isnan(x[abundance_col_name]) or is_unique_peptides_nan(x[
+                    unique_peptides_col_name])) else x[abundance_col_name],
                 axis=1)
-
-        # set abundance value to 0 if it is NAN
-        for abundance_col_name in abundance_col_names:
-            filtered[abundance_col_name] = filtered.apply(lambda x: isnan(x[
-                abundance_col_name]) and 0 or x[abundance_col_name],
-                                                          axis=1)
 
         self.abundance_col_names = abundance_col_names
         self.unique_peptides_col_names = unique_peptides_col_names
@@ -357,9 +352,9 @@ class CsvToPandas:
             df = df[df[column_name] > 0].copy()
 
             # get list of corresponding gene id's but remove rows with invalid gene id's (NAN)
-            genes = [(g, d) for g, d in zip(df[PG_GENES].values,
-                                            df[PG_PROTEINDESCRIPTIONS].values)
-                     if isinstance(g, str)]
+            genes = [(possible_nan_2_str(g), d) for g, d in zip(
+                df[PG_GENES].values, df[PG_PROTEINDESCRIPTIONS].values)
+                     if isinstance(g, str)]  # add 'or True' to get NAN as well
 
             # write list of genes to CSV file
             # todo: write to file in experiment output dir.
@@ -443,10 +438,16 @@ class CsvToPandas:
         ]
         has_match = lambda txt: any(
             (1 for search_for in search_for_text
-             if isinstance(txt, str) and search_for.find(txt.lower()) >= 0))
+             if isinstance(txt, str) and txt.lower().find(search_for) >= 0))
 
-        return self.filtered[(self.filtered[CELLULAR_SEARCH_COLUMNS].applymap(
+        self.filtered[CELLULAR_SEARCH_COLUMNS].to_csv(
+            'CELLULAR_SEARCH_COLUMNS')
+
+        df = self.filtered[(self.filtered[CELLULAR_SEARCH_COLUMNS].applymap(
             lambda value: not has_match(value)).all(1))].copy()
+
+        # remove rows with invalid uniprotid
+        return df[df[PG_GENES].apply(lambda x: isinstance(x, str))].copy()
 
     def generate_cellular_file(self):
         # get dataframe with cellular rows only
@@ -469,23 +470,28 @@ class CsvToPandas:
                                (self.args.experiment_name, )),
             '|'.join(cellular_uniprotids))
 
-
     def cellular_analysis_2(self, N=20, sample_names=None):
         '''cellular_analysis on csv file with additional cellular description columns'''
         # get dataframe with cellular rows only
         df = self.get_cellular_dataframe()
 
-        for column_sample_name in self.get_column_names(LABEL_FREE_QUANT,sample_names):
+        all_rows = self.filtered[self.filtered[PG_GENES].apply(lambda x: isinstance(x, str))].copy()
+
+        for column_sample_name in self.get_column_names(
+                LABEL_FREE_QUANT, sample_names):
+
+            # row count for sample with value > 0
+            total = len(all_rows[all_rows[column_sample_name] > 0])
+
             # remove rows with sample value <= 0
-            df_sample = df[df[column_sample_name].apply(lambda value: value > 0)].copy()
+            df_sample = df[df[column_sample_name] > 0]
 
             # print total for sample
-            print('%s: sample cellular rows:%d, all cellular rows:%d' % (column_sample_name,len(df_sample),len(df)))
+            print('%s: sample cellular rows:%d, all cellular rows:%d' %
+                  (self.get_output_name(column_sample_name), len(df_sample), total))
 
             # order by abundance value desc
             #df_sample = df_sample.sort_values(by=[column_sample_name], ascending=False)
-
-
 
     def to_output_dataframe(self, df, columns, sample_names):
         res = pd.DataFrame(df[columns])

@@ -50,7 +50,7 @@ def to_dict(fname, sep):
 
 def ensure_path_exists(fname):
     dirname = path.dirname(fname)
-    if not path.exists(dirname):
+    if dirname and not path.exists(dirname):
         makedirs(dirname, exist_ok=True)
     return fname
 

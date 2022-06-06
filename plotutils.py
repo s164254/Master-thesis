@@ -13,8 +13,8 @@ def dataframe_plot(df,
                    title,
                    axis_setup_func=None,
                    plot_setup_func=None,
-                   title_font_size=8,
-                   tick_font_size=8,
+                   title_font_size=4,
+                   tick_font_size=4,
                    block=False,
                    fig_filename=None,
                    xlabel='',
@@ -42,6 +42,6 @@ def dataframe_plot(df,
     plt.show(block=do_block)
     if fig_filename:
         plt.subplots_adjust(bottom=0.15)
-        plt.gcf().set_dpi(300)
-        plt.rcParams["figure.figsize"] = (10,6) # width, height
-        plt.savefig(fig_filename, Forward=True)
+        plt.rcParams['savefig.dpi'] = 300
+        #plt.rcParams["figure.figsize"] = (10,6) # width, height
+        plt.savefig(fig_filename)
