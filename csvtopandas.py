@@ -99,7 +99,7 @@ class CsvToPandas:
         # remove rows where all unique peptides values are either 0, 1 or NAN
         filtered = csv[(csv[unique_peptides_col_names].applymap(
             lambda value: not is_unique_peptides_nan(value)).any(1))]
-
+         
         # put newlines in protein description
         protein_desc_column = csv.columns.tolist().index(
             PG_PROTEINDESCRIPTIONS)
@@ -214,6 +214,7 @@ class CsvToPandas:
                       group_name,
                       use_ratio_filter,
                       protein_description_filter,
+                      remove_non_existing,
                       normalize=True):
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
@@ -221,7 +222,11 @@ class CsvToPandas:
         df = self.filtered[protein_description_filter(self.filtered[PG_PROTEINDESCRIPTIONS])].copy()
 
         for column_name in column_names:
-            df[df[column_name] <= 0] = 0.00001
+            if True or remove_non_existing: # remove True if transformation below is fixed
+                 df = df[df[column_name] > 0].copy()
+            else:
+                pass
+                # need to fix this df[column_name] = df[df[column_name] <= 0] = 0.00001
 
         # calculate fraction of the abundance mean columns
         df[RATIO] = df[column_names[0]] / df[column_names[1]]
