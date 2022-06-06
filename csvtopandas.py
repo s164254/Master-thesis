@@ -437,7 +437,7 @@ class CsvToPandas:
         search_for_text = [
             s.lower()
             for s in ('extracellular', 'basement', 'collagen', 'fibronectin',
-                      'laminin', 'Elastin', 'Proteoglycan', 'Uncharacterized protein', 'fibrinogen')
+                      'laminin', 'Elastin', 'Proteoglycan', 'Uncharacterized protein', 'fibrinogen','growth factor','vimentin','Inter alpha trypsin inhibitor heavy chain', 'hemoglobin','myoglobin','transglutaminase','Cartilage intermediate layer protein','glycogen phosphorylase')
         ]
         has_match = lambda txt: any(
             (1 for search_for in search_for_text
@@ -453,7 +453,7 @@ class CsvToPandas:
         df = df[df[PG_GENES].apply(lambda x: isinstance(x, str))]
         
         # remove rows having an extracellular uniprotid
-        extra_celluar_uniprotids = [u.lower() for u in ('CILP',)]
+        extra_celluar_uniprotids = [u.lower() for u in ('XYZAAAAA',)] #,)CILP','ITIH1','ITIH4','PYGB','HBB','MB','TGM2')]
         return df[df[PG_GENES].apply(lambda x: not any((u for u in extra_celluar_uniprotids if u==x.lower())))].copy()
 
     def generate_cellular_file(self):
