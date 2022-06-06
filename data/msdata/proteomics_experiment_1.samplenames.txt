@@ -1,0 +1,4 @@
+M1=PatiPro_A2M
+M2=PatiPro_A2B
+P1=PatiPro_P2M
+P2=PatiPro_P3B

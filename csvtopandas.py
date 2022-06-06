@@ -212,52 +212,53 @@ class CsvToPandas:
     def fold_analysis(self,
                       sample_names,
                       group_name,
-                      use_filter,
+                      use_ratio_filter,
                       protein_description_filter,
                       normalize=True):
-        # create dataframe where all rows have a value > 0 in all abundance columns
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
-        df = self.filtered[(self.filtered[column_names].applymap(
-            lambda value: value > 0).all(1))].copy()
+        # apply protein_description_filter and copy to new dataframe
+        df = self.filtered[protein_description_filter(self.filtered[PG_PROTEINDESCRIPTIONS])].copy()
+
+        for column_name in column_names:
+            df[df[column_name] <= 0] = 0.00001
 
         # calculate fraction of the abundance mean columns
         df[RATIO] = df[column_names[0]] / df[column_names[1]]
 
         # keep rows with ratio > 2 or ratio < 0.5
-        if use_filter:
+        if use_ratio_filter:
             above = df[RATIO] > 2
             below = df[RATIO] < 0.5
             df = df[above | below]
         else:
             df = df[df[RATIO] > 0]
 
-        # make a plot for each protein_description_filter
-        fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
-        try:
-            plot_df = df[protein_description_filter(
-                df[PG_PROTEINDESCRIPTIONS])].copy()
-        except Exception as ex:
-            df.to_csv(
-                self.args.fig_filename('ecm_foldchange.%s.%s.err.csv' %
-                                       (fig_samplenames, group_name)))
+        if len(df) == 0:
             return
 
-        if len(plot_df) == 0:
-            return
+        # try:
+        #     plot_df = df[protein_description_filter(
+        #         df[PG_PROTEINDESCRIPTIONS])].copy()
+        # except Exception as ex:
+        #     df.to_csv(
+        #         self.args.fig_filename('ecm_foldchange.%s.%s.err.csv' %
+        #                                (fig_samplenames, group_name)))
+        #     return
 
         if normalize:
             # add max column to df
-            plot_df['max'] = plot_df[column_names].max(axis=1)
+            df['max'] = df[column_names].max(axis=1)
             # normalize values in each row
-            plot_df[column_names] = plot_df[column_names].div(plot_df['max'],
-                                                              axis=0)
+            df[column_names] = df[column_names].div(df['max'], axis=0)
 
+        fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
         fig_filename = self.args.fig_filename('ecm_foldchange.%s.%s.png' %
                                               (fig_samplenames, group_name))
+        #fig_filename=''
 
         self.to_output_and_plot(
-            plot_df, [PG_PROTEINDESCRIPTIONS_NEWLINE], column_names,
+            df, [PG_PROTEINDESCRIPTIONS_NEWLINE], column_names,
             lambda inp: plotutils.dataframe_plot(
                 inp[0],
                 lambda x: x.set_index(inp[0][PG_PROTEINDESCRIPTIONS_NEWLINE]).

@@ -19,7 +19,7 @@ def load_common_proteins(experiment_name):
 
 attr_actions = (
     ('sample_name_lookup',
-     lambda n: ft.to_dict(ft.msdata_filename('%s.samplesnames' % (n, )), '=')),
+     lambda n: ft.to_dict(ft.msdata_filename('%s.samplenames.txt' % (n, )), '=')),
     ('common_proteins', load_common_proteins),
 )
 

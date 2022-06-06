@@ -30,5 +30,5 @@ def run_analysis(protein_groups, analysis_func):
         exp = csvtopandas.CsvToPandas(experiment_name)
         for samples in all_samples:
             for protein_group, filter_func in zip(protein_groups, protein_description_filters):
-                protein_group, use_filter = protein_group
-                analysis_func(exp, samples, protein_group, use_filter, filter_func)
+                protein_group, use_ratio_filter = protein_group
+                analysis_func(exp, samples, protein_group, use_ratio_filter, filter_func)

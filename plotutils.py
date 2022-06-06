@@ -20,12 +20,13 @@ def dataframe_plot(df, plot_func, title, axis_setup_func=None, plot_setup_func=N
     if ylabel:
         plt.ylabel(ylabel)
 
-
     if axis_setup_func:
         axis_setup_func(ax)
 
     if plot_setup_func:
         plot_setup_func(plt)
+
+    plt.subplots_adjust(bottom=0.15)
 
     do_block = block
     if fig_filename:
