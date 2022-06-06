@@ -1,6 +1,7 @@
 from locale import normalize
 from math import isnan
 from operator import index
+from tkinter.tix import CELL
 from matplotlib.pyplot import legend, plot
 import pandas as pd
 import re
@@ -20,6 +21,18 @@ PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
 PG_PROTEINDESCRIPTIONS_NEWLINE = 'ProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
+
+CELLULAR_SEARCH_COLUMNS = [
+    'PG.CellularComponent', 'PG.BiologicalProcess', 'PG.MolecularFunction',
+    PG_PROTEINDESCRIPTIONS
+]
+
+
+def dataframe_applymap_on_rows(df, column_names, column_func, all_column_func):
+    return df[all_column_func(df[column_names].applymap(column_func))]
+
+    # csv[(csv[unique_peptides_col_names].applymap(
+    #         lambda value: not is_unique_peptides_nan(value)).any(1))]
 
 
 def possible_nan_2_str(v):
@@ -97,9 +110,14 @@ class CsvToPandas:
         unique_peptides_col_names = self.get_column_names(UNIQUE_PEPTIDES)
 
         # remove rows where all unique peptides values are either 0, 1 or NAN
+        test = dataframe_applymap_on_rows(
+            csv, unique_peptides_col_names,
+            lambda value: not is_unique_peptides_nan(value),
+            lambda x: x.any(1)).copy()
+
         filtered = csv[(csv[unique_peptides_col_names].applymap(
-            lambda value: not is_unique_peptides_nan(value)).any(1))]
-         
+            lambda value: not is_unique_peptides_nan(value)).any(1))].copy()
+
         # put newlines in protein description
         protein_desc_column = csv.columns.tolist().index(
             PG_PROTEINDESCRIPTIONS)
@@ -219,11 +237,12 @@ class CsvToPandas:
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
         # apply protein_description_filter and copy to new dataframe
-        df = self.filtered[protein_description_filter(self.filtered[PG_PROTEINDESCRIPTIONS])].copy()
+        df = self.filtered[protein_description_filter(
+            self.filtered[PG_PROTEINDESCRIPTIONS])].copy()
 
         for column_name in column_names:
-            if True or remove_non_existing: # remove True if transformation below is fixed
-                 df = df[df[column_name] > 0].copy()
+            if True or remove_non_existing:  # remove True if transformation below is fixed
+                df = df[df[column_name] > 0].copy()
             else:
                 pass
                 # need to fix this df[column_name] = df[df[column_name] <= 0] = 0.00001
@@ -408,15 +427,14 @@ class CsvToPandas:
                 'N most common proteins',
                 block=True)
 
-    def generate_cellular_file(self):
-        # if self.args.common_proteins:
-        #     return
-
+    def get_cellular_dataframe(self):
         if not any([
                 c for c in self.filtered.columns
                 if c.upper() == 'PG.CellularComponent'.upper()
         ]):
-            return
+            raise Exception(
+                'get_cellular_dataframe: missing search columns in dataframe '
+                + self.args.experiment_name)
 
         search_for_text = [
             s.lower()
@@ -426,24 +444,48 @@ class CsvToPandas:
         has_match = lambda txt: any(
             (1 for search_for in search_for_text
              if isinstance(txt, str) and search_for.find(txt.lower()) >= 0))
-        search_columns = [
-            'PG.CellularComponent', 'PG.BiologicalProcess',
-            'PG.MolecularFunction', PG_PROTEINDESCRIPTIONS
-        ]
-        rows = self.filtered[search_columns].values
-        non_matching_uniprotids = [
-            uniprotid
-            for row, uniprotid in zip(rows, self.filtered[PG_GENES].values)
-            if isinstance(uniprotid, str) and not any(
-                (1 for col in rows if isinstance(col, str) and has_match(col)))
-        ]
+
+        return self.filtered[(self.filtered[CELLULAR_SEARCH_COLUMNS].applymap(
+            lambda value: not has_match(value)).all(1))].copy()
+
+    def generate_cellular_file(self):
+        # get dataframe with cellular rows only
+        df = self.get_cellular_dataframe()
+
+        # keep rows where at least one abundance is > 0
+        df = dataframe_applymap_on_rows(df, self.abundance_col_names,
+                                        lambda value: value > 0,
+                                        lambda x: x.any(1))
+
+        # remove rows with invalid uniprotid
+        df = df[df[PG_GENES].apply(lambda x: isinstance(x, str))]
+
+        cellular_uniprotids = df[PG_GENES].values
         print('Cellular:%s, Extracellular:%d' %
-              (len(non_matching_uniprotids),
-               len(self.filtered) - len(non_matching_uniprotids)))
+              (len(cellular_uniprotids),
+               len(self.filtered) - len(cellular_uniprotids)))
         ft.to_file(
             ft.msdata_filename('%s.cellular.txt' %
                                (self.args.experiment_name, )),
-            '|'.join(non_matching_uniprotids))
+            '|'.join(cellular_uniprotids))
+
+
+    def cellular_analysis_2(self, N=20, sample_names=None):
+        '''cellular_analysis on csv file with additional cellular description columns'''
+        # get dataframe with cellular rows only
+        df = self.get_cellular_dataframe()
+
+        for column_sample_name in self.get_column_names(LABEL_FREE_QUANT,sample_names):
+            # remove rows with sample value <= 0
+            df_sample = df[df[column_sample_name].apply(lambda value: value > 0)].copy()
+
+            # print total for sample
+            print('%s: sample cellular rows:%d, all cellular rows:%d' % (column_sample_name,len(df_sample),len(df)))
+
+            # order by abundance value desc
+            #df_sample = df_sample.sort_values(by=[column_sample_name], ascending=False)
+
+
 
     def to_output_dataframe(self, df, columns, sample_names):
         res = pd.DataFrame(df[columns])

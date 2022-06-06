@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from pyparsing import Forward
 
 #def dataframe_plot(df, plot_func, title, axis_setup_func=None, title_font_size=4, tick_font_size=4, block=False, fig_filename=None):
 #    _dataframe_plot(df, plot_func, title, axis_setup_func, title_font_size, tick_font_size, block, fig_filename)
@@ -7,10 +8,19 @@ import matplotlib.pyplot as plt
 #    _dataframe_plot(df, plot_func, title, axis_setup_func, title_font_size, tick_font_size, block, fig_filename, xticks_on=False)
 
 
-def dataframe_plot(df, plot_func, title, axis_setup_func=None, plot_setup_func=None, title_font_size=8, tick_font_size=8, block=False, fig_filename=None, xlabel='',ylabel=''):
+def dataframe_plot(df,
+                   plot_func,
+                   title,
+                   axis_setup_func=None,
+                   plot_setup_func=None,
+                   title_font_size=8,
+                   tick_font_size=8,
+                   block=False,
+                   fig_filename=None,
+                   xlabel='',
+                   ylabel=''):
     ax = plot_func(df)
-    
-    
+
     plt.xticks(fontsize=tick_font_size)
     plt.yticks(fontsize=tick_font_size)
     plt.title(label=title, fontsize=title_font_size)
@@ -26,11 +36,12 @@ def dataframe_plot(df, plot_func, title, axis_setup_func=None, plot_setup_func=N
     if plot_setup_func:
         plot_setup_func(plt)
 
-    plt.subplots_adjust(bottom=0.15)
-
     do_block = block
     if fig_filename:
         do_block = False
     plt.show(block=do_block)
     if fig_filename:
-        plt.savefig(fig_filename)
+        plt.subplots_adjust(bottom=0.15)
+        plt.gcf().set_dpi(300)
+        plt.rcParams["figure.figsize"] = (10,6) # width, height
+        plt.savefig(fig_filename, Forward=True)
