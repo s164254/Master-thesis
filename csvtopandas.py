@@ -434,7 +434,7 @@ class CsvToPandas:
         search_for_text = [
             s.lower()
             for s in ('extracellular', 'basement', 'collagen', 'fibronectin',
-                      'laminin', 'Elastin', 'Proteoglycan')
+                      'laminin', 'Elastin', 'Proteoglycan', 'Uncharacterized protein')
         ]
         has_match = lambda txt: any(
             (1 for search_for in search_for_text
@@ -470,12 +470,13 @@ class CsvToPandas:
                                (self.args.experiment_name, )),
             '|'.join(cellular_uniprotids))
 
-    def cellular_analysis_2(self, N=20, sample_names=None):
+    def cellular_analysis_2(self, sample_names=None):
         '''cellular_analysis on csv file with additional cellular description columns'''
         # get dataframe with cellular rows only
         df = self.get_cellular_dataframe()
 
-        all_rows = self.filtered[self.filtered[PG_GENES].apply(lambda x: isinstance(x, str))].copy()
+        all_rows = self.filtered[self.filtered[PG_GENES].apply(
+            lambda x: isinstance(x, str))].copy()
 
         for column_sample_name in self.get_column_names(
                 LABEL_FREE_QUANT, sample_names):
@@ -488,10 +489,59 @@ class CsvToPandas:
 
             # print total for sample
             print('%s: sample cellular rows:%d, all cellular rows:%d' %
-                  (self.get_output_name(column_sample_name), len(df_sample), total))
+                  (self.get_output_name(column_sample_name), len(df_sample),
+                   total))
 
             # order by abundance value desc
             #df_sample = df_sample.sort_values(by=[column_sample_name], ascending=False)
+
+    def cellular_analysis_3(self, sample_names, N=10):
+        '''cellular_analysis on csv file with additional cellular description columns'''
+        # get dataframe with cellular rows only
+        df = self.get_cellular_dataframe()
+
+        uniprotid_abundance_lists = []
+        column_sample_names = self.get_column_names(LABEL_FREE_QUANT,
+                                                    sample_names)
+        display_column_sample_names = [
+            self.get_output_name(cn) for cn in column_sample_names
+        ]
+        sample_names_key = '_'.join(sample_names)
+        for column_sample_name in column_sample_names:
+            # remove rows with sample value <= 0
+            df_sample = df[df[column_sample_name] > 0]
+
+            # order by abundance value desc
+            df_sample = df_sample.sort_values(by=[column_sample_name],
+                                              ascending=False)
+
+            uniprotid_abundance_lists.append(
+                df_sample[[PG_GENES, column_sample_name]].values)
+
+        res = nmost_common(uniprotid_abundance_lists,
+                           N,
+                           0, [PG_GENES] + display_column_sample_names,
+                           normalize=True)
+
+        fig_filename = self.args.fig_filename(
+            'batch_to_batch-common-cellular-analysis.%s.png' %
+            (sample_names_key, ))
+        fig_filename = None
+        plotutils.dataframe_plot(
+            res,
+            lambda df: df.plot(x=PG_GENES,
+                               y=display_column_sample_names,
+                               kind='bar',
+                               rot=0,
+                               legend=True,
+                               ylim=(0, 1.2)),
+            'a title',
+            axis_setup_func=None,  #lambda ax: ax.get_xaxis().set_ticklabels([]),
+            plot_setup_func=None,
+            xlabel='x label',
+            ylabel='y label',
+            block=True,
+            fig_filename=fig_filename)
 
     def to_output_dataframe(self, df, columns, sample_names):
         res = pd.DataFrame(df[columns])
