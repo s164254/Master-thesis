@@ -19,6 +19,7 @@ UNIQUE_PEPTIDES = 'UniquePeptides'
 LABEL_FREE_QUANT = 'Label-Free Quant'
 PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
 PG_PROTEINDESCRIPTIONS_NEWLINE = 'ProteinDescriptions'
+UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE = 'UniprotidProteinDescriptions'
 PG_GENES = 'PG.Genes'
 RATIO = 'ratio'
 
@@ -123,6 +124,8 @@ class CsvToPandas:
             PG_PROTEINDESCRIPTIONS)
         filtered[PG_PROTEINDESCRIPTIONS_NEWLINE] = filtered.apply(
             lambda x: re.sub('\s+', '\n', x[protein_desc_column]), axis=1)
+        filtered[UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE] = filtered.apply(
+            lambda x: '%s\n%s' % (x[PG_GENES],x[PG_PROTEINDESCRIPTIONS_NEWLINE]), axis=1)
 
         # for the remaining rows set label-free quant to 0 if the corresponding unique peptides value is either 0, 1 or NAN
         abundance_col_names = self.get_column_names(LABEL_FREE_QUANT)
@@ -434,7 +437,7 @@ class CsvToPandas:
         search_for_text = [
             s.lower()
             for s in ('extracellular', 'basement', 'collagen', 'fibronectin',
-                      'laminin', 'Elastin', 'Proteoglycan', 'Uncharacterized protein')
+                      'laminin', 'Elastin', 'Proteoglycan', 'Uncharacterized protein', 'fibrinogen')
         ]
         has_match = lambda txt: any(
             (1 for search_for in search_for_text
@@ -447,7 +450,11 @@ class CsvToPandas:
             lambda value: not has_match(value)).all(1))].copy()
 
         # remove rows with invalid uniprotid
-        return df[df[PG_GENES].apply(lambda x: isinstance(x, str))].copy()
+        df = df[df[PG_GENES].apply(lambda x: isinstance(x, str))]
+        
+        # remove rows having an extracellular uniprotid
+        extra_celluar_uniprotids = [u.lower() for u in ('CILP',)]
+        return df[df[PG_GENES].apply(lambda x: not any((u for u in extra_celluar_uniprotids if u==x.lower())))].copy()
 
     def generate_cellular_file(self):
         # get dataframe with cellular rows only
@@ -516,11 +523,11 @@ class CsvToPandas:
                                               ascending=False)
 
             uniprotid_abundance_lists.append(
-                df_sample[[PG_GENES, column_sample_name]].values)
+                df_sample[[UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE, column_sample_name]].values)
 
         res = nmost_common(uniprotid_abundance_lists,
                            N,
-                           0, [PG_GENES] + display_column_sample_names,
+                           0, [UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE] + display_column_sample_names,
                            normalize=True)
 
         fig_filename = self.args.fig_filename(
@@ -529,7 +536,7 @@ class CsvToPandas:
         fig_filename = None
         plotutils.dataframe_plot(
             res,
-            lambda df: df.plot(x=PG_GENES,
+            lambda df: df.plot(x=UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE,
                                y=display_column_sample_names,
                                kind='bar',
                                rot=0,
