@@ -49,10 +49,12 @@ def to_dict(fname, sep):
 
 
 def ensure_path_exists(fname):
+    fname = fname.replace(' ', '_')
     dirname = path.dirname(fname)
     if dirname and not path.exists(dirname):
         makedirs(dirname, exist_ok=True)
     return fname
+
 
 def to_list(fname, sep=None):
     content = read_file(fname)
@@ -60,8 +62,9 @@ def to_list(fname, sep=None):
         return None
     return content[0].find(sep) >= 0 and content[0].split(sep) or content
 
+
 def to_file(fname, content):
-    ensure_path_exists(fname)
-    print(fname)
-    with open(fname.replace(' ','_'), 'w') as f:
+    fn = ensure_path_exists(fname)
+    print(fn)
+    with open(fn, 'w') as f:
         f.write(content)

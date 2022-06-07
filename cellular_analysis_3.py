@@ -10,4 +10,4 @@ all_sample_groups = (
 )
 
 for sample_names in all_sample_groups:
-    exp.cellular_analysis_3(sample_names=sample_names, N=10)
+    exp.cellular_analysis_3(sample_names=sample_names, N=20)

@@ -1,8 +1,4 @@
-from locale import normalize
 from math import isnan
-from operator import index
-from tkinter.tix import CELL
-from matplotlib.pyplot import legend, plot
 import pandas as pd
 import re
 import plotutils
@@ -31,8 +27,22 @@ CELLULAR_SEARCH_COLUMNS = [
     PG_PROTEINDESCRIPTIONS
 ]
 
+
+def legend_outside_chart(ax):
+    pos = ax.get_position()
+    ax.set_position([pos.x0, pos.y0, pos.width * 1.0, pos.height])
+    ax.legend(loc='center right', bbox_to_anchor=(1.25, 0.5))
+
+
+def write_gene_2_genedesc(genes, gene_2_genedesc, fname):
+    ft.to_file(
+        fname,
+        '\n'.join('%s=%s' % (gene, gene_2_genedesc[gene]) for gene in genes))
+
+
 def parse_uniprotid(uniprotid):
     return uniprotid.split(';')[0]
+
 
 def dataframe_applymap_on_rows(df, column_names, column_func, all_column_func):
     return df[all_column_func(df[column_names].applymap(column_func))]
@@ -50,10 +60,7 @@ def set_bar_labels(ax, fmt='%.2f'):
         ax.bar_label(c, fmt=fmt)
 
 
-def nmost_common(lists,
-                 N,
-                 common_column_idx,
-                 df_column_names):
+def nmost_common(lists, N, common_column_idx, df_column_names):
     n = N
     n_max = min([len(l) for l in lists])
     common = set.intersection(
@@ -79,7 +86,7 @@ def nmost_common(lists,
                 if row[common_column_idx] == gene
             ][0])
         # log 2 transform all values
-        row_values = [math.log(v,2) for v in row_values]
+        row_values = [math.log(v, 2) for v in row_values]
         rows.append(row_values)
 
     common = list(sorted(common))
@@ -128,7 +135,9 @@ class CsvToPandas:
         filtered[PG_PROTEINDESCRIPTIONS_NEWLINE] = filtered.apply(
             lambda x: re.sub('\s+', '\n', x[protein_desc_column]), axis=1)
         filtered[UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE] = filtered.apply(
-            lambda x: '%s\n%s' % (x[PG_GENES],x[PG_PROTEINDESCRIPTIONS_NEWLINE]), axis=1)
+            lambda x: '%s\n%s' %
+            (x[PG_GENES], x[PG_PROTEINDESCRIPTIONS_NEWLINE]),
+            axis=1)
 
         # for the remaining rows set label-free quant to 0 if the corresponding unique peptides value is either 0, 1 or NAN
         abundance_col_names = self.get_column_names(LABEL_FREE_QUANT)
@@ -143,6 +152,9 @@ class CsvToPandas:
         self.abundance_col_names = abundance_col_names
         self.unique_peptides_col_names = unique_peptides_col_names
         self.filtered = filtered
+
+        self.gene_2_genedesc = dict(
+            self.filtered[[PG_GENES, PG_PROTEINDESCRIPTIONS]].values)
 
     def cellular_analysis(self, N, title, xlabel, ylabel, sample_names=None):
         gene_abundance_list = []
@@ -167,9 +179,8 @@ class CsvToPandas:
             gene_abundance_list.append(
                 [row for row in l if row[0] in common_proteins])
 
-        res = nmost_common(gene_abundance_list,
-                           N,
-                           0, [PG_GENES] + column_names)
+        res = nmost_common(gene_abundance_list, N, 0,
+                           [PG_GENES] + column_names)
         fig_filename = self.args.fig_filename(
             'batch_to_batch-common-cellular-analysis.%s.png' %
             (sample_names_key, ))
@@ -177,7 +188,7 @@ class CsvToPandas:
             res,
             lambda df: df.plot(x=PG_GENES,
                                y=column_names,
-                               kind='bar',
+                               kind='barh',
                                rot=0,
                                legend=True,
                                ylim=(0, 1.2)),
@@ -227,12 +238,8 @@ class CsvToPandas:
 
         return matches[0]
 
-    def fold_analysis(self,
-                      sample_names,
-                      group_name,
-                      use_ratio_filter,
-                      protein_description_filter,
-                      remove_non_existing):
+    def fold_analysis(self, sample_names, group_name, use_ratio_filter,
+                      protein_description_filter, remove_non_existing):
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
         # apply protein_description_filter and copy to new dataframe
@@ -273,25 +280,32 @@ class CsvToPandas:
         df[column_names] = np.log2(df[column_names])
 
         fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
-        fig_filename = self.args.fig_filename('ecm_foldchange.%s.%s.png' %
-                                              (fig_samplenames, group_name))
-        fig_filename=''
+        fname_base = self.args.fig_filename('ecm_foldchange.%s.%s' %
+                                            (fig_samplenames, group_name))
 
+        write_gene_2_genedesc(df[PG_GENES].values, self.gene_2_genedesc,
+                              fname_base + '.txt')
+        fig_filename = fname_base + '.png'
+
+        mx = max(df[column_names].max())
         self.to_output_and_plot(
-            df, [PG_PROTEINDESCRIPTIONS_NEWLINE], column_names,
+            df,
+            [PG_GENES],
+            column_names,
             lambda inp: plotutils.dataframe_plot(
                 inp[0],
-                lambda x: x.set_index(inp[0][PG_PROTEINDESCRIPTIONS_NEWLINE]).
-                plot(y=inp[1],
-                     kind='bar',
-                     rot=0,
-                     legend=True
-                     #ylim=normalize and (0, 1.2) or None
-                     ),
+                lambda x: x.set_index(inp[0][PG_GENES]).plot(
+                    y=inp[1],
+                    kind='bar',
+                    rot=90,
+                    legend=True
+                    #ylim=normalize and (0, 1.2) or None
+                ),
                 '',
                 axis_setup_func=None,
                 fig_filename=fig_filename,
-                block=True))
+                block=True,
+                ylim=(0, mx * 1.2)))
 
     def ecm_common(self, sample_names, group_name, use_filter,
                    protein_description_filter):
@@ -309,7 +323,8 @@ class CsvToPandas:
             df = df[protein_description_filter(
                 df[PG_PROTEINDESCRIPTIONS])].copy()
 
-            uniprotid = df[PG_GENES].values
+            uniprotid = df[PG_UNIPROTID].values
+            genenames = df[PG_GENES].values
             protein_desc = df[PG_PROTEINDESCRIPTIONS].values
 
             other_values = df[other_column_names].values
@@ -319,7 +334,7 @@ class CsvToPandas:
                 if value <= 0
             ])) for i, row in enumerate(other_values)]
             other_missing = [
-                ','.join((possible_nan_2_str(uniprotid[x[0]]),
+                ','.join((uniprotid[x[0]], possible_nan_2_str(genenames[x[0]]),
                           possible_nan_2_str(protein_desc[x[0]]), x[1]))
                 for x in other_missing if x[1]
             ]
@@ -330,13 +345,16 @@ class CsvToPandas:
                 '\n'.join(other_missing))
 
         # one file with all sample names
-        df = df[protein_description_filter(df[PG_PROTEINDESCRIPTIONS])].copy()
+        column_names = self.get_column_names(LABEL_FREE_QUANT)
+        df = self.filtered[protein_description_filter(
+            self.filtered[PG_PROTEINDESCRIPTIONS])].copy()
         column_display_names = map(self.get_output_name, column_names)
         for column_name, column_display_name in zip(column_names,
                                                     column_display_names):
             df[column_name] = df[column_name].apply(
                 lambda value: value > 0 and column_display_name or '')
-        output_columns = [PG_GENES, PG_PROTEINDESCRIPTIONS] + column_names
+        output_columns = [PG_UNIPROTID, PG_GENES, PG_PROTEINDESCRIPTIONS
+                          ] + column_names
         output = df[output_columns].values
         ft.to_file(
             self.args.common_filename('%s.csv' % (group_name, )), '\n'.join([
@@ -354,9 +372,12 @@ class CsvToPandas:
             df = df[df[column_name] > 0].copy()
 
             # get list of corresponding gene id's but remove rows with invalid gene id's (NAN)
-            genes = [(parse_uniprotid(u), possible_nan_2_str(g), d) for u, g, d in zip(
-                df[PG_UNIPROTID].values, df[PG_GENES].values, df[PG_PROTEINDESCRIPTIONS].values)
-                     if True or isinstance(g, str)]  # add 'or True' to get NAN as well
+            genes = [
+                (parse_uniprotid(u), possible_nan_2_str(g), d)
+                for u, g, d in zip(df[PG_UNIPROTID].values, df[PG_GENES].
+                                   values, df[PG_PROTEINDESCRIPTIONS].values)
+                if True or isinstance(g, str)
+            ]  # add 'or True' to get NAN as well
 
             # write list of genes to CSV file
             # todo: write to file in experiment output dir.
@@ -418,7 +439,7 @@ class CsvToPandas:
                 nmost,
                 lambda df: df.plot(x=PG_PROTEINDESCRIPTIONS,
                                    y=list(sample_names),
-                                   kind='bar',
+                                   kind='barh',
                                    rot=0,
                                    legend=False),
                 'N most common proteins',
@@ -436,7 +457,12 @@ class CsvToPandas:
         search_for_text = [
             s.lower()
             for s in ('extracellular', 'basement', 'collagen', 'fibronectin',
-                      'laminin', 'Elastin', 'Proteoglycan', 'Uncharacterized protein', 'fibrinogen','growth factor','vimentin','Inter alpha trypsin inhibitor heavy chain', 'hemoglobin','myoglobin','transglutaminase','Cartilage intermediate layer protein','glycogen phosphorylase')
+                      'laminin', 'Elastin', 'Proteoglycan',
+                      'Uncharacterized protein', 'fibrinogen', 'growth factor',
+                      'vimentin', 'Inter alpha trypsin inhibitor heavy chain',
+                      'hemoglobin', 'myoglobin', 'transglutaminase',
+                      'Cartilage intermediate layer protein',
+                      'glycogen phosphorylase')
         ]
         has_match = lambda txt: any(
             (1 for search_for in search_for_text
@@ -450,10 +476,16 @@ class CsvToPandas:
 
         # remove rows with invalid uniprotid
         df = df[df[PG_GENES].apply(lambda x: isinstance(x, str))]
-        
+
         # remove rows having an extracellular uniprotid
-        extra_celluar_uniprotids = [u.lower() for u in ('XYZAAAAA',)] #,)CILP','ITIH1','ITIH4','PYGB','HBB','MB','TGM2')]
-        return df[df[PG_GENES].apply(lambda x: not any((u for u in extra_celluar_uniprotids if u==x.lower())))].copy()
+        extra_celluar_uniprotids = [
+            u.lower() for u in ('XYZAAAAA', )
+        ]  #,)CILP','ITIH1','ITIH4','PYGB','HBB','MB','TGM2')]
+        # filtering on extra_celluar_uniprotids disabled
+        extra_celluar_uniprotids = []
+
+        return df[df[PG_GENES].apply(lambda x: not any(
+            (u for u in extra_celluar_uniprotids if u == x.lower())))].copy()
 
     def generate_cellular_file(self):
         # get dataframe with cellular rows only
@@ -501,7 +533,7 @@ class CsvToPandas:
             # order by abundance value desc
             #df_sample = df_sample.sort_values(by=[column_sample_name], ascending=False)
 
-    def cellular_analysis_3(self, sample_names, N=10):
+    def cellular_analysis_3(self, sample_names, N=20):
         '''cellular_analysis on csv file with additional cellular description columns'''
         # get dataframe with cellular rows only
         df = self.get_cellular_dataframe()
@@ -522,31 +554,37 @@ class CsvToPandas:
                                               ascending=False)
 
             uniprotid_abundance_lists.append(
-                df_sample[[UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE, column_sample_name]].values)
+                df_sample[[PG_GENES, column_sample_name]].values)
 
-        res = nmost_common(uniprotid_abundance_lists,
-                           N,
-                           0, [UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE] + display_column_sample_names)
+        res = nmost_common(uniprotid_abundance_lists, N, 0,
+                           [PG_GENES] + display_column_sample_names)
 
-        fig_filename = self.args.fig_filename(
-            'batch_to_batch-common-cellular-analysis.%s.png' %
+        fname_base = self.args.fig_filename(
+            'batch_to_batch-common-cellular-analysis.%s' %
             (sample_names_key, ))
-        fig_filename = None
+
+        write_gene_2_genedesc(res[PG_GENES].values, self.gene_2_genedesc,
+                              fname_base + '.txt')
+
+        fig_filename = fname_base + '.png'
+        #fig_filename = None
+
+        mx = max(res[display_column_sample_names].max())
         plotutils.dataframe_plot(
             res,
-            lambda df: df.plot(x=UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE,
+            lambda df: df.plot(x=PG_GENES,
                                y=display_column_sample_names,
                                kind='bar',
-                               rot=0,
-                               legend=True,
-                               ylim=(0, 1.2)),
+                               rot=90,
+                               legend=True),
             'a title',
-            axis_setup_func=None,  #lambda ax: ax.get_xaxis().set_ticklabels([]),
+            axis_setup_func=None,  #legend_outside_chart,
             plot_setup_func=None,
             xlabel='x label',
             ylabel='y label',
             block=True,
-            fig_filename=fig_filename)
+            fig_filename=fig_filename,
+            ylim=(0, mx * 1.15))
 
     def to_output_dataframe(self, df, columns, sample_names):
         res = pd.DataFrame(df[columns])
