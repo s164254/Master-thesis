@@ -21,6 +21,7 @@ PG_PROTEINDESCRIPTIONS = 'PG.ProteinDescriptions'
 PG_PROTEINDESCRIPTIONS_NEWLINE = 'ProteinDescriptions'
 UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE = 'UniprotidProteinDescriptions'
 PG_GENES = 'PG.Genes'
+PG_UNIPROTID = 'PG.UniprotIds'
 RATIO = 'ratio'
 
 CELLULAR_SEARCH_COLUMNS = [
@@ -28,6 +29,8 @@ CELLULAR_SEARCH_COLUMNS = [
     PG_PROTEINDESCRIPTIONS
 ]
 
+def parse_uniprotid(uniprotid):
+    return uniprotid.split(';')[0]
 
 def dataframe_applymap_on_rows(df, column_names, column_func, all_column_func):
     return df[all_column_func(df[column_names].applymap(column_func))]
@@ -355,16 +358,16 @@ class CsvToPandas:
             df = df[df[column_name] > 0].copy()
 
             # get list of corresponding gene id's but remove rows with invalid gene id's (NAN)
-            genes = [(possible_nan_2_str(g), d) for g, d in zip(
-                df[PG_GENES].values, df[PG_PROTEINDESCRIPTIONS].values)
-                     if isinstance(g, str)]  # add 'or True' to get NAN as well
+            genes = [(parse_uniprotid(u), possible_nan_2_str(g), d) for u, g, d in zip(
+                df[PG_UNIPROTID].values, df[PG_GENES].values, df[PG_PROTEINDESCRIPTIONS].values)
+                     if True or isinstance(g, str)]  # add 'or True' to get NAN as well
 
             # write list of genes to CSV file
             # todo: write to file in experiment output dir.
             ft.to_file(
                 self.args.gene_filename('%s.genelistdesc.csv' %
                                         (column_name, )),
-                '\n'.join(['%s,%s' % x for x in genes]))
+                '\n'.join(['%s,%s,%s' % x for x in genes]))
             ft.to_file(
                 self.args.gene_filename('%s.genelist.csv' % (column_name, )),
                 '\n'.join([x[0] for x in genes]))
