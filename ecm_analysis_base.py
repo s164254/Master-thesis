@@ -7,7 +7,6 @@ warnings.filterwarnings("ignore")
 def col_starts_with(startswith):
     return lambda col: col.str.startswith(startswith, na=False)
 
-
 def col_contains(match_regex):
     return lambda col: col.str.contains(match_regex, case=False, na=False)
 
@@ -17,14 +16,21 @@ experiments = (
                                                     'T3'))),
 )
 
-N = 10
-
 # I,III,IV,V,VI
 collagen_regex = 'Collagen.+ (I|V){1,3}[^\S|$]'
+fibronectin_regex = '^Fibronectin$'
+protein_description_filter_dict = {
+    'Collagen': col_contains(collagen_regex),
+    'Fibronectin': col_contains(fibronectin_regex),
+    'Laminin': col_starts_with('Laminin'),
+    'Elastin': col_starts_with('Elastin'),
+    'Proteoglycan': col_starts_with('Proteoglycan')
+}
+N = 10
+
 
 def run_analysis(protein_groups, analysis_func):
-    protein_description_filters = [col_contains(collagen_regex)] + list(
-        map(col_starts_with, protein_groups[1:]))
+    protein_description_filters = [protein_description_filter_dict[protein_group] for protein_group, use_ratio_filter in protein_groups]
 
     for experiment_name, all_samples in experiments:
         exp = csvtopandas.CsvToPandas(experiment_name)
