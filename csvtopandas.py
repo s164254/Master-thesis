@@ -8,6 +8,8 @@ import re
 import plotutils
 import experiment_args
 import fileutils as ft
+import math
+import numpy as np
 
 
 def is_unique_peptides_nan(value):
@@ -51,8 +53,7 @@ def set_bar_labels(ax, fmt='%.2f'):
 def nmost_common(lists,
                  N,
                  common_column_idx,
-                 df_column_names,
-                 normalize=False):
+                 df_column_names):
     n = N
     n_max = min([len(l) for l in lists])
     common = set.intersection(
@@ -77,9 +78,8 @@ def nmost_common(lists,
                 row[(common_column_idx + 1) % 2] for row in lst[:n]
                 if row[common_column_idx] == gene
             ][0])
-        if normalize:
-            mx = max(row_values)
-            row_values = [v / mx for v in row_values]  # brug numpy
+        # log 2 transform all values
+        row_values = [math.log(v,2) for v in row_values]
         rows.append(row_values)
 
     common = list(sorted(common))
@@ -169,8 +169,7 @@ class CsvToPandas:
 
         res = nmost_common(gene_abundance_list,
                            N,
-                           0, [PG_GENES] + column_names,
-                           normalize=True)
+                           0, [PG_GENES] + column_names)
         fig_filename = self.args.fig_filename(
             'batch_to_batch-common-cellular-analysis.%s.png' %
             (sample_names_key, ))
@@ -233,8 +232,7 @@ class CsvToPandas:
                       group_name,
                       use_ratio_filter,
                       protein_description_filter,
-                      remove_non_existing,
-                      normalize=True):
+                      remove_non_existing):
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
         # apply protein_description_filter and copy to new dataframe
@@ -271,16 +269,13 @@ class CsvToPandas:
         #                                (fig_samplenames, group_name)))
         #     return
 
-        if normalize:
-            # add max column to df
-            df['max'] = df[column_names].max(axis=1)
-            # normalize values in each row
-            df[column_names] = df[column_names].div(df['max'], axis=0)
+        # log transform
+        df[column_names] = np.log2(df[column_names])
 
         fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
         fig_filename = self.args.fig_filename('ecm_foldchange.%s.%s.png' %
                                               (fig_samplenames, group_name))
-        #fig_filename=''
+        fig_filename=''
 
         self.to_output_and_plot(
             df, [PG_PROTEINDESCRIPTIONS_NEWLINE], column_names,
@@ -290,10 +285,11 @@ class CsvToPandas:
                 plot(y=inp[1],
                      kind='bar',
                      rot=0,
-                     legend=True,
-                     ylim=normalize and (0, 1.2) or None),
+                     legend=True
+                     #ylim=normalize and (0, 1.2) or None
+                     ),
                 '',
-                axis_setup_func=set_bar_labels,
+                axis_setup_func=None,
                 fig_filename=fig_filename,
                 block=True))
 
@@ -530,8 +526,7 @@ class CsvToPandas:
 
         res = nmost_common(uniprotid_abundance_lists,
                            N,
-                           0, [UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE] + display_column_sample_names,
-                           normalize=True)
+                           0, [UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE] + display_column_sample_names)
 
         fig_filename = self.args.fig_filename(
             'batch_to_batch-common-cellular-analysis.%s.png' %
