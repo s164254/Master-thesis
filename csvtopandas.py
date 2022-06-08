@@ -423,7 +423,7 @@ class CsvToPandas:
                                                  sample_names)
             all_column_values = [
                 sorted(list(
-                    zip(filtered[PG_PROTEINDESCRIPTIONS_NEWLINE],
+                    zip(filtered[PG_GENES],
                         filtered[column_name])),
                        key=lambda x: x[1],
                        reverse=True) for column_name in column_names
@@ -442,7 +442,7 @@ class CsvToPandas:
                                for column_values in all_column_values]))
 
             # create a new dataframe based on the list of sample values for each of the N found proteins
-            d = {PG_PROTEINDESCRIPTIONS: list(common)}
+            d = {PG_GENES: list(common)}
             for sample_name, column_values in zip(sample_names,
                                                   all_column_values):
                 d.update({
@@ -455,11 +455,11 @@ class CsvToPandas:
 
             plotutils.dataframe_plot(
                 nmost,
-                lambda df: df.plot(x=PG_PROTEINDESCRIPTIONS,
+                lambda df: df.plot(x=PG_GENES,
                                    y=list(sample_names),
                                    kind='barh',
-                                   rot=0,
-                                   legend=False),
+                                   rot=90,
+                                   legend=True),
                 'N most common proteins',
                 block=True)
 
