@@ -181,26 +181,33 @@ class CsvToPandas:
             gene_abundance_list.append(
                 [row for row in l if row[0] in common_proteins])
 
-        res = nmost_common(gene_abundance_list, N, 0,
-                           [PG_GENES] + column_names)
-        fig_filename = self.args.fig_filename(
-            'batch_to_batch-common-cellular-analysis.%s.png' %
+        fname_base = self.args.fig_filename(
+            'batch_to_batch-common-cellular-analysis.%s' %
             (sample_names_key, ))
+        display_column_sample_names = [
+            self.get_output_name(cn, fname_base) for cn in column_names
+        ]
+        res = nmost_common(gene_abundance_list, N, 0,
+                           [PG_GENES] + display_column_sample_names)
+        fig_filename = fname_base + '.png'
+        fig_filename = ''
+        mx = max(res[display_column_sample_names].max())
         plotutils.dataframe_plot(
             res,
             lambda df: df.plot(x=PG_GENES,
-                               y=column_names,
-                               kind='barh',
-                               rot=0,
+                               y=display_column_sample_names,
+                               kind='bar',
+                               rot=90,
                                legend=True,
-                               ylim=(0, 1.2)),
+                               logy=True),
             title,
             axis_setup_func=None,  #lambda ax: ax.get_xaxis().set_ticklabels([]),
             plot_setup_func=None,
             xlabel=xlabel,
             ylabel=ylabel,
             block=True,
-            fig_filename=fig_filename)
+            fig_filename=fig_filename,
+            ylim=(0, mx * 1.15))
 
     def get_column_names(self, attr_name, sample_names=None):
         return [
@@ -305,7 +312,8 @@ class CsvToPandas:
             df,
             [PG_GENES],
             column_names,
-            lambda inp: plotutils.dataframe_plot(
+            fname_base=fname_base,
+            plot_func=lambda inp: plotutils.dataframe_plot(
                 inp[0],
                 lambda x: x.set_index(inp[0][PG_GENES]).plot(
                     y=inp[1],
@@ -418,9 +426,7 @@ class CsvToPandas:
             column_names = self.get_column_names(LABEL_FREE_QUANT,
                                                  sample_names)
             all_column_values = [
-                sorted(list(
-                    zip(filtered[PG_GENES],
-                        filtered[column_name])),
+                sorted(list(zip(filtered[PG_GENES], filtered[column_name])),
                        key=lambda x: x[1],
                        reverse=True) for column_name in column_names
             ]
@@ -449,15 +455,14 @@ class CsvToPandas:
 
             nmost = pd.DataFrame(data=d)
 
-            plotutils.dataframe_plot(
-                nmost,
-                lambda df: df.plot(x=PG_GENES,
-                                   y=list(sample_names),
-                                   kind='barh',
-                                   rot=90,
-                                   legend=True),
-                'N most common proteins',
-                block=True)
+            plotutils.dataframe_plot(nmost,
+                                     lambda df: df.plot(x=PG_GENES,
+                                                        y=list(sample_names),
+                                                        kind='barh',
+                                                        rot=90,
+                                                        legend=True),
+                                     'N most common proteins',
+                                     block=True)
 
     def get_cellular_dataframe(self):
         if not any([
@@ -547,7 +552,7 @@ class CsvToPandas:
             # order by abundance value desc
             #df_sample = df_sample.sort_values(by=[column_sample_name], ascending=False)
 
-    def cellular_analysis_3(self, sample_names, N=20):
+    def cellular_analysis_3(self, sample_names, title_func, xlabel, ylabel):
         '''cellular_analysis on csv file with additional cellular description columns'''
         # get dataframe with cellular rows only
         df = self.get_cellular_dataframe()
@@ -574,7 +579,7 @@ class CsvToPandas:
         display_column_sample_names = [
             self.get_output_name(cn, fname_base) for cn in column_sample_names
         ]
-        res = nmost_common(uniprotid_abundance_lists, N, 0,
+        res = nmost_common(uniprotid_abundance_lists, 20, 0,
                            [PG_GENES] + display_column_sample_names)
 
         write_gene_2_genedesc(res[PG_GENES].values, self.gene_2_genedesc,
@@ -592,24 +597,25 @@ class CsvToPandas:
                                rot=90,
                                legend=True,
                                logy=True),
-            'a title',
+            title_func(self.args.experiment_name, display_column_sample_names),
             axis_setup_func=None,  #legend_outside_chart,
             plot_setup_func=None,
-            xlabel='x label',
-            ylabel='y label',
+            xlabel=xlabel,
+            ylabel=ylabel,
             block=True,
             fig_filename=fig_filename,
             ylim=(0, mx * 1.15))
 
-    def to_output_dataframe(self, df, columns, sample_names):
+    def to_output_dataframe(self, df, columns, sample_names, fname_base):
         res = pd.DataFrame(df[columns])
         output_sample_names = []
         for sample_name in sample_names:
-            output_sample_name = self.get_output_name(sample_name)
+            output_sample_name = self.get_output_name(sample_name, fname_base)
             output_sample_names.append(output_sample_name)
             res[output_sample_name] = df[sample_name]
         return res, output_sample_names
 
-    def to_output_and_plot(self, df, columns, sample_names, plot_func):
+    def to_output_and_plot(self, df, columns, sample_names, plot_func,
+                           fname_base):
         ret = self.to_output_dataframe(df, columns, sample_names)
         plot_func(ret)

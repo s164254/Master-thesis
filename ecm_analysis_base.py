@@ -23,8 +23,6 @@ protein_description_filter_dict = {
     'Elastin': col_starts_with('Elastin'),
     'Proteoglycan': col_starts_with('Proteoglycan')
 }
-N = 10
-
 
 def run_analysis(protein_groups, analysis_func):
     protein_description_filters = [protein_description_filter_dict[protein_group] for protein_group, use_ratio_filter in protein_groups]
