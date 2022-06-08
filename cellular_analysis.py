@@ -1,7 +1,4 @@
 import csvtopandas
-import warnings
-
-warnings.filterwarnings("ignore")
 
 N = 20
 exp = csvtopandas.CsvToPandas('proteomics_experiment_1')

@@ -1,3 +1,4 @@
+from os import path
 from math import isnan
 import pandas as pd
 import re
@@ -6,6 +7,7 @@ import experiment_args
 import fileutils as ft
 import math
 import numpy as np
+import warnings
 
 
 def is_unique_peptides_nan(value):
@@ -100,6 +102,7 @@ def nmost_common(lists, N, common_column_idx, df_column_names):
 
 class CsvToPandas:
     def __init__(self, args) -> None:
+        warnings.filterwarnings("ignore")
         args = isinstance(
             args, str) and experiment_args.to_experiment_args(args) or args
         self.args = args
@@ -155,6 +158,8 @@ class CsvToPandas:
 
         self.gene_2_genedesc = dict(
             self.filtered[[PG_GENES, PG_PROTEINDESCRIPTIONS]].values)
+
+        self.experiment_lookup = {}
 
     def cellular_analysis(self, N, title, xlabel, ylabel, sample_names=None):
         gene_abundance_list = []
@@ -220,15 +225,28 @@ class CsvToPandas:
 
         return matches and matches[0] or None
 
-    def get_output_name(self, column_name):
+    def get_output_name(self, column_name, lookup_basename=None):
         csv_samplename = [c for c in self.col_info if c[3] == column_name]
         if len(csv_samplename) != 1:
             raise Exception(
                 'get_output_name: expected 1 sample name matching %s, got %d' %
                 (column_name, len(csv_samplename)))
 
+        lookup_dict = self.args.sample_name_lookup
+        if lookup_basename:
+            if not lookup_basename in self.experiment_lookup:
+                lookup_filename = self.args.lookup_filename(lookup_basename +
+                                                            '.txt')
+                if path.exists(lookup_filename):
+                    self.experiment_lookup[lookup_basename] = ft.to_dict(
+                        lookup_filename, '=')
+                else:
+                    print('MISSING lookup file:' + lookup_filename)
+            if lookup_basename in self.experiment_lookup:
+                lookup_dict = self.experiment_lookup[lookup_basename]
+
         matches = [
-            v for k, v in self.args.sample_name_lookup.items()
+            v for k, v in lookup_dict.items()
             if csv_samplename[0][3].find('%s.' % (k, )) > 0
         ]
         if len(matches) != 1:
@@ -541,9 +559,6 @@ class CsvToPandas:
         uniprotid_abundance_lists = []
         column_sample_names = self.get_column_names(LABEL_FREE_QUANT,
                                                     sample_names)
-        display_column_sample_names = [
-            self.get_output_name(cn) for cn in column_sample_names
-        ]
         sample_names_key = '_'.join(sample_names)
         for column_sample_name in column_sample_names:
             # remove rows with sample value <= 0
@@ -556,12 +571,15 @@ class CsvToPandas:
             uniprotid_abundance_lists.append(
                 df_sample[[PG_GENES, column_sample_name]].values)
 
-        res = nmost_common(uniprotid_abundance_lists, N, 0,
-                           [PG_GENES] + display_column_sample_names)
-
         fname_base = self.args.fig_filename(
             'batch_to_batch-common-cellular-analysis.%s' %
             (sample_names_key, ))
+
+        display_column_sample_names = [
+            self.get_output_name(cn, fname_base) for cn in column_sample_names
+        ]
+        res = nmost_common(uniprotid_abundance_lists, N, 0,
+                           [PG_GENES] + display_column_sample_names)
 
         write_gene_2_genedesc(res[PG_GENES].values, self.gene_2_genedesc,
                               fname_base + '.txt')

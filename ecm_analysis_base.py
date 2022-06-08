@@ -1,7 +1,4 @@
 import csvtopandas
-import warnings
-
-warnings.filterwarnings("ignore")
 
 
 def col_starts_with(startswith):

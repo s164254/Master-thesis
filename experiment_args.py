@@ -31,15 +31,18 @@ def to_experiment_args(experiment_name):
     for attr_name, action in attr_actions:
         res[attr_name] = action(experiment_name)
     output_dir = path.join(ft.msdata_filename('.'), 'output')
+    input_dir = path.join(ft.msdata_filename('.'), 'input')
 
     if not path.exists(output_dir):
         makedirs(output_dir)
 
     res['experiment_output_dir'] = ft.ensure_path_exists(path.join(output_dir, experiment_name))
+    res['experiment_input_dir'] = ft.ensure_path_exists(path.join(input_dir, experiment_name))
     res['gene_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir,
                                                 'gene', fn))
     res['fig_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir, fn))
     res['common_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_output_dir,
                                                 'ecm_common', fn))
+    res['lookup_filename'] = lambda fn: ft.ensure_path_exists(path.join(res.experiment_input_dir, path.basename(fn)))
 
     return res
