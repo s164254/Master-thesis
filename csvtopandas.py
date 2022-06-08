@@ -5,7 +5,6 @@ import re
 import plotutils
 import experiment_args
 import fileutils as ft
-import math
 import numpy as np
 import warnings
 
@@ -87,8 +86,6 @@ def nmost_common(lists, N, common_column_idx, df_column_names):
                 row[(common_column_idx + 1) % 2] for row in lst[:n]
                 if row[common_column_idx] == gene
             ][0])
-        # log 2 transform all values
-        row_values = [math.log(v, 2) for v in row_values]
         rows.append(row_values)
 
     common = list(sorted(common))
@@ -294,9 +291,6 @@ class CsvToPandas:
         #                                (fig_samplenames, group_name)))
         #     return
 
-        # log transform
-        df[column_names] = np.log2(df[column_names])
-
         fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
         fname_base = self.args.fig_filename('ecm_foldchange.%s.%s' %
                                             (fig_samplenames, group_name))
@@ -304,6 +298,7 @@ class CsvToPandas:
         write_gene_2_genedesc(df[PG_GENES].values, self.gene_2_genedesc,
                               fname_base + '.txt')
         fig_filename = fname_base + '.png'
+        #fig_filename = ''
 
         mx = max(df[column_names].max())
         self.to_output_and_plot(
@@ -316,7 +311,8 @@ class CsvToPandas:
                     y=inp[1],
                     kind='bar',
                     rot=90,
-                    legend=True
+                    legend=True,
+                    logy=True
                     #ylim=normalize and (0, 1.2) or None
                 ),
                 '',
@@ -594,7 +590,8 @@ class CsvToPandas:
                                y=display_column_sample_names,
                                kind='bar',
                                rot=90,
-                               legend=True),
+                               legend=True,
+                               logy=True),
             'a title',
             axis_setup_func=None,  #legend_outside_chart,
             plot_setup_func=None,
