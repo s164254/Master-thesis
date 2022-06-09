@@ -189,6 +189,10 @@ class CsvToPandas:
         ]
         res = nmost_common(gene_abundance_list, N, 0,
                            [PG_GENES] + display_column_sample_names)
+        
+        write_gene_2_genedesc(res[PG_GENES].values, self.gene_2_genedesc,
+                              fname_base + '.txt')
+        
         fig_filename = fname_base + '.png'
         fig_filename = ''
         mx = max(res[display_column_sample_names].max())
