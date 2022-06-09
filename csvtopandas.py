@@ -481,10 +481,10 @@ class CsvToPandas:
             for s in ('extracellular', 'basement', 'collagen', 'fibronectin',
                       'laminin', 'Elastin', 'Proteoglycan',
                       'Uncharacterized protein', 'fibrinogen', 'growth factor',
-                      'vimentin', 'Inter alpha trypsin inhibitor heavy chain',
+                      'vimentin', 'Inter-alpha-trypsin inhibitor heavy chain',
                       'hemoglobin', 'myoglobin', 'transglutaminase',
                       'Cartilage intermediate layer protein',
-                      'glycogen phosphorylase')
+                      'glycogen phosphorylase','nidogen')
         ]
         has_match = lambda txt: any(
             (1 for search_for in search_for_text
