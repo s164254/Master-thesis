@@ -242,9 +242,12 @@ class CsvToPandas:
                 lookup_filename = self.args.lookup_filename(lookup_basename +
                                                             '.txt')
                 if path.exists(lookup_filename):
-                    self.experiment_lookup[lookup_basename] = ft.to_dict(
+                    content =ft.to_dict(
                         lookup_filename, '=')
+                    if content:
+                        self.experiment_lookup[lookup_basename] = content
                 else:
+                    ft.to_file(lookup_filename, '')
                     print('MISSING lookup file:' + lookup_filename)
             if lookup_basename in self.experiment_lookup:
                 lookup_dict = self.experiment_lookup[lookup_basename]
@@ -309,9 +312,9 @@ class CsvToPandas:
 
         mx = max(df[column_names].max())
         self.to_output_and_plot(
-            df,
-            [PG_GENES],
-            column_names,
+            df = df,
+            columns = [PG_GENES],
+            sample_names = column_names,
             fname_base=fname_base,
             plot_func=lambda inp: plotutils.dataframe_plot(
                 inp[0],
@@ -617,5 +620,5 @@ class CsvToPandas:
 
     def to_output_and_plot(self, df, columns, sample_names, plot_func,
                            fname_base):
-        ret = self.to_output_dataframe(df, columns, sample_names)
+        ret = self.to_output_dataframe(df, columns, sample_names, fname_base)
         plot_func(ret)
