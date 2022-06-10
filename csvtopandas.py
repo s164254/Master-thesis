@@ -501,38 +501,33 @@ class CsvToPandas:
             lambda value: not has_match(value)).all(1))].copy()
 
         # remove rows with invalid uniprotid
-        df = df[df[PG_GENES].apply(lambda x: isinstance(x, str))]
+        df = df[df[PG_UNIPROTID].apply(lambda x: isinstance(x, str))]
 
-        # remove rows having an extracellular uniprotid
-        extra_celluar_uniprotids = [
-            u.lower() for u in ('XYZAAAAA', )
-        ]  #,)CILP','ITIH1','ITIH4','PYGB','HBB','MB','TGM2')]
-        # filtering on extra_celluar_uniprotids disabled
-        extra_celluar_uniprotids = []
-
-        return df[df[PG_GENES].apply(lambda x: not any(
-            (u for u in extra_celluar_uniprotids if u == x.lower())))].copy()
+        return df.copy()
 
     def generate_cellular_files(self):
-        # get dataframe with cellular rows only
-        df = self.get_cellular_dataframe()
-
         column_names = self.get_column_names(LABEL_FREE_QUANT)
         display_column_sample_names = [
             self.get_output_name(cn) for cn in column_names
         ]
+        f=self.filtered.copy()
 
         for column_name, display_column_name in zip( column_names, display_column_sample_names):
-            df = dataframe_applymap_on_rows(df, [column_name],
-                                            lambda value: value > 0,
-                                            lambda x: x.any(1))
+                    # get dataframe with cellular rows only
+            df = self.get_cellular_dataframe()
+
+            df = df[df[column_name]>0]
+            # df = dataframe_applymap_on_rows(df, [column_name],
+            #                                 lambda value: value > 0,
+            #                                 lambda x: x.any(1))
 
             df = df[df[PG_UNIPROTID].apply(lambda x: isinstance(x, str))]
 
             cellular_uniprotids = df[PG_UNIPROTID].values
+            total = len(f[f[column_name]>0])
             print('Cellular:%s, Extracellular:%d' %
                 (len(cellular_uniprotids),
-                len(self.filtered) - len(cellular_uniprotids)))
+                total - len(cellular_uniprotids)))
             ft.to_file(
                 ft.msdata_filename('%s.%s.cellular.txt' %
                                 (self.args.experiment_name, display_column_name )),
