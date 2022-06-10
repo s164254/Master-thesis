@@ -25,6 +25,7 @@ def dataframe_plot(df,
                    ylim=None,
                    xlim=None):
     params = {'legend.fontsize': 6} #, 'legend.handlelength': 2}
+    plt.rcParams["figure.autolayout"] = True
     plot.rcParams.update(params)
 
     ax = plot_func(df)
@@ -61,8 +62,8 @@ def dataframe_plot(df,
     if plot_setup_func:
         plot_setup_func(plt)
 
-    spacing = 0.100
-    plt.figure().subplots_adjust(bottom=spacing)
+    #spacing = 0.0100
+    #plt.figure().subplots_adjust(bottom=spacing)
     
     do_block = block
     if fig_filename:
