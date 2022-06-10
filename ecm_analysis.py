@@ -8,6 +8,12 @@ protein_groups = (
     ('Proteoglycan', False),
 )
 
+title_dict = {
+    'Collagen': 'Abundance of selected collagen types for the samples',
+    'Fibronectin': 'Abundance of fibronectin for the samples',
+    'Laminin': 'Abundance of all laminin proteins for the samples',
+}
+
 
 def analysis_func(exp, samples, protein_group, use_ratio_filter, filter_func):
     remove_non_existing = True # =False does not work at the moment, see comments in fold_analysis function
@@ -15,7 +21,7 @@ def analysis_func(exp, samples, protein_group, use_ratio_filter, filter_func):
                       protein_group,
                       use_ratio_filter,
                       filter_func,
-                      title = '',
+                      title = title_dict.get(protein_group, ''),
                       xlabel='Gene names',
                       ylabel='Abundance',
                       remove_non_existing=remove_non_existing)
@@ -23,6 +29,3 @@ def analysis_func(exp, samples, protein_group, use_ratio_filter, filter_func):
 
 ecm.run_analysis(protein_groups, analysis_func)
 
-#Abundance of selected collagen types for the samples
-#Abundance of all laminin proteins for the samples
-#Abundance of fibronectin for the samples

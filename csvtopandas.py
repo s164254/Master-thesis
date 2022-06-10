@@ -333,7 +333,6 @@ class CsvToPandas:
                     logy=True
                     #ylim=normalize and (0, 1.2) or None
                 ),
-                '',
                 axis_setup_func=None,
                 fig_filename=fig_filename,
                 block=True,
