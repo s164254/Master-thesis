@@ -265,8 +265,8 @@ class CsvToPandas:
         ]
         if len(matches) != 1:
             raise Exception(
-                'get_output_name: expected 1 matching lookup sample name key, got %d'
-                % (csv_samplename[0], len(matches)))
+                'get_output_name: expected 1 matching lookup sample name key, got %d, %s, %s'
+                % (len(matches), csv_samplename[0], lookup_basename))
 
         return matches[0]
 

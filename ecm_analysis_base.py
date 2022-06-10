@@ -9,7 +9,8 @@ def col_contains(match_regex):
 
 experiments = (
     ('proteomics_experiment_1', (('M1', 'P1'), ('M1', 'M2'))),
-    ('proteomics_experiment_2', (('Fa1a', 'Fa2a'), ('Fa1a', 'T1', 'T2',
+    ('proteomics_experiment_2', (('Fa1a', 'Fa2a'), ('T1', 'T2',
+                                                    'T3'),('Fa1a',
                                                     'T3'))),
 )
 
