@@ -194,7 +194,7 @@ class CsvToPandas:
                               fname_base + '.txt')
         
         fig_filename = fname_base + '.png'
-        fig_filename = ''
+        #fig_filename = ''
         mx = max(res[display_column_sample_names].max())
         plotutils.dataframe_plot(
             res,
@@ -271,7 +271,7 @@ class CsvToPandas:
         return matches[0]
 
     def fold_analysis(self, sample_names, group_name, use_ratio_filter,
-                      protein_description_filter, remove_non_existing):
+                      protein_description_filter, remove_non_existing, title , xlabel, ylabel):
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
         # apply protein_description_filter and copy to new dataframe
@@ -337,6 +337,9 @@ class CsvToPandas:
                 axis_setup_func=None,
                 fig_filename=fig_filename,
                 block=True,
+                title=title,
+                xlabel=xlabel,
+                ylabel=ylabel,
                 ylim=(0, mx * 1.2)))
 
     def ecm_common(self, sample_names, group_name, use_filter,

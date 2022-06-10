@@ -15,6 +15,9 @@ def analysis_func(exp, samples, protein_group, use_ratio_filter, filter_func):
                       protein_group,
                       use_ratio_filter,
                       filter_func,
+                      title = 't',
+                      xlabel='xl',
+                      ylabel='yl',
                       remove_non_existing=remove_non_existing)
 
 
