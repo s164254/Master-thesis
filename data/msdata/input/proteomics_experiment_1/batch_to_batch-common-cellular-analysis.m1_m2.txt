@@ -1,0 +1,2 @@
+M1=Manually cut
+M2=Blended

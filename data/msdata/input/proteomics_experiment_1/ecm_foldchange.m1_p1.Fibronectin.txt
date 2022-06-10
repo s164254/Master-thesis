@@ -1,0 +1,2 @@
+M1=Adult pig
+P1=Neonatal pig
