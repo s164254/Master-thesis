@@ -61,6 +61,9 @@ def dataframe_plot(df,
     if plot_setup_func:
         plot_setup_func(plt)
 
+    spacing = 0.100
+    plt.figure().subplots_adjust(bottom=spacing)
+    
     do_block = block
     if fig_filename:
         do_block = False
