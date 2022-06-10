@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from pyparsing import Forward
 import pylab as plot
+from matplotlib import ticker
+import numpy as np
 
 #def dataframe_plot(df, plot_func, title, axis_setup_func=None, title_font_size=4, tick_font_size=4, block=False, fig_filename=None):
 #    _dataframe_plot(df, plot_func, title, axis_setup_func, title_font_size, tick_font_size, block, fig_filename)
@@ -49,6 +51,13 @@ def dataframe_plot(df,
     if axis_setup_func:
         axis_setup_func(ax)
 
+    #plt.tick_params(axis='y', which='minor')
+    #y_minor = ticker.LogLocator(base = 10.0, subs = np.arange(1.0, 10.0) * 0.1, numticks = 10)
+    ax.yaxis.set_minor_locator(ticker.LogLocator(subs=[2,3,5,7]))
+    ax.yaxis.set_minor_formatter(ticker.LogFormatterSciNotation(minor_thresholds=(np.inf, np.inf)))
+    ax.tick_params('y', which='minor', labelsize=tick_font_size)    
+    maf = ax.yaxis.get_major_formatter()
+    mif = ax.yaxis.get_minor_formatter()
     if plot_setup_func:
         plot_setup_func(plt)
 
