@@ -513,26 +513,30 @@ class CsvToPandas:
         return df[df[PG_GENES].apply(lambda x: not any(
             (u for u in extra_celluar_uniprotids if u == x.lower())))].copy()
 
-    def generate_cellular_file(self):
+    def generate_cellular_files(self):
         # get dataframe with cellular rows only
         df = self.get_cellular_dataframe()
 
-        # keep rows where at least one abundance is > 0
-        df = dataframe_applymap_on_rows(df, self.abundance_col_names,
-                                        lambda value: value > 0,
-                                        lambda x: x.any(1))
+        column_names = self.get_column_names(LABEL_FREE_QUANT)
+        display_column_sample_names = [
+            self.get_output_name(cn) for cn in column_names
+        ]
 
-        # remove rows with invalid uniprotid
-        df = df[df[PG_GENES].apply(lambda x: isinstance(x, str))]
+        for column_name, display_column_name in zip( column_names, display_column_sample_names):
+            df = dataframe_applymap_on_rows(df, [column_name],
+                                            lambda value: value > 0,
+                                            lambda x: x.any(1))
 
-        cellular_uniprotids = df[PG_GENES].values
-        print('Cellular:%s, Extracellular:%d' %
-              (len(cellular_uniprotids),
-               len(self.filtered) - len(cellular_uniprotids)))
-        ft.to_file(
-            ft.msdata_filename('%s.cellular.txt' %
-                               (self.args.experiment_name, )),
-            '|'.join(cellular_uniprotids))
+            df = df[df[PG_UNIPROTID].apply(lambda x: isinstance(x, str))]
+
+            cellular_uniprotids = df[PG_UNIPROTID].values
+            print('Cellular:%s, Extracellular:%d' %
+                (len(cellular_uniprotids),
+                len(self.filtered) - len(cellular_uniprotids)))
+            ft.to_file(
+                ft.msdata_filename('%s.%s.cellular.txt' %
+                                (self.args.experiment_name, display_column_name )),
+                '|'.join(cellular_uniprotids))
 
     def cellular_analysis_2(self, sample_names=None):
         '''cellular_analysis on csv file with additional cellular description columns'''
