@@ -250,6 +250,9 @@ class CsvToPandas:
                         lookup_filename, '=')
                     if content:
                         self.experiment_lookup[lookup_basename] = content
+                    else:
+                        print('empty lookup file:' + lookup_filename)
+ 
                 else:
                     ft.to_file(lookup_filename, '')
                     print('MISSING lookup file:' + lookup_filename)
