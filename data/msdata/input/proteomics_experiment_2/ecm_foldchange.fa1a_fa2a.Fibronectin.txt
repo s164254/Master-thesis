@@ -1,2 +1,2 @@
-fa1a_500ng=Adult 3
-fa2a_500ng=Adult 4
+Fa1a_500ng=Adult 3
+Fa2a_500ng=Adult 4

@@ -1,0 +1,3 @@
+T1_500ng=SDS 72h
+T2_500ng=SDS 96h
+T3_500ng=SDS 120h
