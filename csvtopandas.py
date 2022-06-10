@@ -471,7 +471,7 @@ class CsvToPandas:
                                      'N most common proteins',
                                      block=True)
 
-    def get_cellular_dataframe(self):
+    def get_cellular_dataframe(self,gene_column_name):
         if not any([
                 c for c in self.filtered.columns
                 if c.upper() == 'PG.CellularComponent'.upper()
@@ -501,7 +501,7 @@ class CsvToPandas:
             lambda value: not has_match(value)).all(1))].copy()
 
         # remove rows with invalid uniprotid
-        df = df[df[PG_UNIPROTID].apply(lambda x: isinstance(x, str))]
+        df = df[df[gene_column_name].apply(lambda x: isinstance(x, str))]
 
         return df.copy()
 
@@ -514,7 +514,7 @@ class CsvToPandas:
 
         for column_name, display_column_name in zip( column_names, display_column_sample_names):
                     # get dataframe with cellular rows only
-            df = self.get_cellular_dataframe()
+            df = self.get_cellular_dataframe(PG_UNIPROTID)
 
             df = df[df[column_name]>0]
             # df = dataframe_applymap_on_rows(df, [column_name],
@@ -561,7 +561,7 @@ class CsvToPandas:
     def cellular_analysis_3(self, sample_names, title_func, xlabel, ylabel):
         '''cellular_analysis on csv file with additional cellular description columns'''
         # get dataframe with cellular rows only
-        df = self.get_cellular_dataframe()
+        df = self.get_cellular_dataframe(PG_GENES)
 
         uniprotid_abundance_lists = []
         column_sample_names = self.get_column_names(LABEL_FREE_QUANT,
