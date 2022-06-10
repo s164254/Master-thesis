@@ -134,6 +134,8 @@ class CsvToPandas:
             PG_PROTEINDESCRIPTIONS)
         filtered[PG_PROTEINDESCRIPTIONS_NEWLINE] = filtered.apply(
             lambda x: re.sub('\s+', '\n', x[protein_desc_column]), axis=1)
+        filtered[PG_GENES] = filtered.apply(
+            lambda x: isinstance( x[PG_GENES], str) and x[PG_GENES].find(';')>=0 and x[PG_GENES].split(';')[0] or x[PG_GENES], axis=1)
         filtered[UNIPROTID_PROTEINDESCRIPTIONS_NEWLINE] = filtered.apply(
             lambda x: '%s\n%s' %
             (x[PG_GENES], x[PG_PROTEINDESCRIPTIONS_NEWLINE]),
