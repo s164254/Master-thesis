@@ -12,11 +12,11 @@ files = [
     ('PB220419dd_batch_4','PDE4'),
     ('PB220419dd_batch_5','PDE5'),
     ('PB220522fd_batch_6_real','PDE6'),
-#    ('PB220522fd_batch_5_and_6','PDE5 and PDE6'),
+    ('PB220522fd_batch_5_and_6','PDE5 and PDE6'),
     ('PB220522fd_batch_final_corrected','PDE7')
 ]
 
-plot_files = files + [('PB220522fd_batch_5_and_6','PDE5 and PDE6')]
+plot_files = files #+ [('PB220522fd_batch_5_and_6','PDE5 and PDE6')]
 
 SAMPLE_ID = 'Sample ID'
 NUCLEIC_ACID_CONC = 'Nucleic Acid Conc.'
@@ -35,7 +35,7 @@ def get_mult_factor(key):
 def to_csv_1():
     for fname, title in files:
         full_fname = ft.dnadata_filename(fname)
-        if not path.exists(full_fname):
+        if False and path.exists(full_fname):
             continue
 
         data = pd.read_excel(ft.dnadata_filename(fname))
@@ -55,10 +55,11 @@ def to_csv_2():
 def plot_all():
     for fname, title in plot_files:
         df = pd.read_csv(ft.dnadata_filename('%s_2' % (fname,), 'csv'))
+        df.rename( columns={SAMPLE_ID:'Samples'}, inplace=True)
         plotutils.dataframe_plot(
             df,
             lambda df: df.plot(
-                x=SAMPLE_ID, y=DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
+                x='Samples', y=DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
             ),
             '%s %s' % (DNA_CONC_NG_MG, title),
             lambda ax: ax.bar_label(ax.containers[0]),
