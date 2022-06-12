@@ -23,7 +23,8 @@ def dataframe_plot(df,
                    xlabel='',
                    ylabel='',
                    ylim=None,
-                   xlim=None):
+                   xlim=None,
+                   minor_ticks=True):
     params = {'legend.fontsize': 6} #, 'legend.handlelength': 2}
     plt.rcParams["figure.autolayout"] = True
     plot.rcParams.update(params)
@@ -54,11 +55,11 @@ def dataframe_plot(df,
 
     #plt.tick_params(axis='y', which='minor')
     #y_minor = ticker.LogLocator(base = 10.0, subs = np.arange(1.0, 10.0) * 0.1, numticks = 10)
-    ax.yaxis.set_minor_locator(ticker.LogLocator(subs=[2,3,5,7]))
-    ax.yaxis.set_minor_formatter(ticker.LogFormatterSciNotation(minor_thresholds=(np.inf, np.inf)))
-    ax.tick_params('y', which='minor', labelsize=tick_font_size)    
-    maf = ax.yaxis.get_major_formatter()
-    mif = ax.yaxis.get_minor_formatter()
+    if minor_ticks:
+        ax.yaxis.set_minor_locator(ticker.LogLocator(subs=[2,3,5,7]))
+        ax.yaxis.set_minor_formatter(ticker.LogFormatterSciNotation(minor_thresholds=(np.inf, np.inf)))
+        ax.tick_params('y', which='minor', labelsize=tick_font_size)    
+
     if plot_setup_func:
         plot_setup_func(plt)
 
