@@ -19,8 +19,10 @@ files = [
 plot_files = files #+ [('PB220522fd_batch_5_and_6','PDE5 and PDE6')]
 
 SAMPLE_ID = 'Sample ID'
+DISPLAY_SAMPLE_ID = 'Samples'
 NUCLEIC_ACID_CONC = 'Nucleic Acid Conc.'
 DNA_CONC_NG_MG = 'DNA concentration'
+DISPLAY_DNA_CONC_NG_MG = 'DNA concentration'
 WEIGHT = 'Weight (mg)'
 MULT_FACTOR = 'MultFactor'
 
@@ -59,13 +61,13 @@ def to_csv_2():
 def plot_all():
     for fname, title in plot_files:
         df = pd.read_csv(ft.dnadata_filename('%s_2' % (fname,), 'csv'))
-        df.rename( columns={SAMPLE_ID:'Samples'}, inplace=True)
+        df.rename( columns={SAMPLE_ID:DISPLAY_SAMPLE_ID, DNA_CONC_NG_MG:DISPLAY_DNA_CONC_NG_MG}, inplace=True)
         plotutils.dataframe_plot(
             df,
             lambda df: df.plot(
-                x='Samples', y=DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
+                x=DISPLAY_SAMPLE_ID, y=DISPLAY_DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
             ),
-            '%s %s' % (DNA_CONC_NG_MG, title),
+            '%s %s' % (DISPLAY_DNA_CONC_NG_MG, title),
             lambda ax: ax.bar_label(ax.containers[0]),
             block=True,
             minor_ticks=False)
