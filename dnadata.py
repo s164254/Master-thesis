@@ -6,13 +6,13 @@ import plotutils
 
 
 files = [
+    ('PB220522fd_batch_5_and_6','PDE5 and PDE6'),
     ('PB220307cd_samples_batch_3','PDE3'),
     ('PB220307ad_samples_B1_A1_A2_modified_for_report','PDE1'),
     ('PB220307bd_samples_P1_M1_M2_equal_replicates','PDE2'),
     ('PB220419dd_batch_4','PDE4'),
     ('PB220419dd_batch_5','PDE5'),
     ('PB220522fd_batch_6_real','PDE6'),
-    ('PB220522fd_batch_5_and_6','PDE5 and PDE6'),
     ('PB220522fd_batch_final_corrected','PDE7')
 ]
 
@@ -35,7 +35,7 @@ def get_mult_factor(key):
 def to_csv_1():
     for fname, title in files:
         full_fname = ft.dnadata_filename(fname)
-        if False and path.exists(full_fname):
+        if path.exists(full_fname):
             continue
 
         data = pd.read_excel(ft.dnadata_filename(fname))
@@ -46,10 +46,14 @@ def to_csv_1():
 
 def to_csv_2():
     for fname, title in files:
+        out_fname = ft.dnadata_filename('%s_2' % (fname,), 'csv')
+        if path.exists(out_fname):
+            continue
+
         df = pd.read_csv(ft.dnadata_filename('%s_1' % (fname,), 'csv'))
         df[DNA_CONC_NG_MG] = df[MULT_FACTOR] * df[NUCLEIC_ACID_CONC] / df[WEIGHT]
         df[DNA_CONC_NG_MG] = df[DNA_CONC_NG_MG].apply(int)
-        df.to_csv(ft.dnadata_filename('%s_2' % (fname,), 'csv'))
+        df.to_csv(out_fname)
 
 
 def plot_all():
@@ -71,6 +75,6 @@ def plot_all():
 #to_csv_1()
 
 # create csv with DNA conc. after correcting mult. factor
-#to_csv_2()
+to_csv_2()
 
 plot_all()
