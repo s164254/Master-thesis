@@ -48,6 +48,7 @@ def to_csv_2():
     for fname, title in files:
         df = pd.read_csv(ft.dnadata_filename('%s_1' % (fname,), 'csv'))
         df[DNA_CONC_NG_MG] = df[MULT_FACTOR] * df[NUCLEIC_ACID_CONC] / df[WEIGHT]
+        df[DNA_CONC_NG_MG] = df[DNA_CONC_NG_MG].apply(int)
         df.to_csv(ft.dnadata_filename('%s_2' % (fname,), 'csv'))
 
 
@@ -61,7 +62,8 @@ def plot_all():
             ),
             '%s %s' % (DNA_CONC_NG_MG, title),
             lambda ax: ax.bar_label(ax.containers[0]),
-            block=True)
+            block=True,
+            minor_ticks=False)
 
 
 # create csv with calculated mean and mult factor
