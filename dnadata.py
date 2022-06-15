@@ -68,7 +68,8 @@ def plot_all():
                 x=DISPLAY_SAMPLE_ID, y=DISPLAY_DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
             ),
             '%s %s' % (DISPLAY_DNA_CONC_NG_MG, title),
-            lambda ax: ax.bar_label(ax.containers[0]),
+            ylabel='Y label',
+            axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
             block=True,
             minor_ticks=False)
 
