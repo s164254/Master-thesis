@@ -6,14 +6,14 @@ import plotutils
 
 
 files = [
-    ('PB220522fd_batch_5_and_6','PDE5 and PDE6'),
-    ('PB220307cd_samples_batch_3','PDE3'),
-    ('PB220307ad_samples_B1_A1_A2_modified_for_report','PDE1'),
-    ('PB220307bd_samples_P1_M1_M2_equal_replicates','PDE2'),
-    ('PB220419dd_batch_4','PDE4'),
-    ('PB220419dd_batch_5','PDE5'),
-    ('PB220522fd_batch_6_real','PDE6'),
-    ('PB220522fd_batch_final_corrected','PDE7')
+   ('PB220522fd_batch_5_and_6','in subset of samples from experiments FilterDe and SDSDe'),
+    ('PB220307cd_samples_batch_3','in samples from experiment BlendDe'),
+    ('PB220307ad_samples_B1_A1_A2_modified_for_report','in samples from experiment IniDe'),
+    ('PB220307bd_samples_P1_M1_M2_equal_replicates','in samples from experiment PatiDe'),
+    ('PB220419dd_batch_4','in samples from experiment FineDe'),
+    ('PB220419dd_batch_5','in samples from experiment FilterDe'),
+    ('PB220522fd_batch_6_real','in samples from experiment SDSDe'),
+    ('PB220522fd_batch_final_corrected','in samples from experiment HarshDe')
 ]
 
 plot_files = files #+ [('PB220522fd_batch_5_and_6','PDE5 and PDE6')]
@@ -68,7 +68,7 @@ def plot_all():
                 x=DISPLAY_SAMPLE_ID, y=DISPLAY_DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
             ),
             '%s %s' % (DISPLAY_DNA_CONC_NG_MG, title),
-            ylabel='Y label',
+            ylabel='DNA concentration [ng/mg lyophilized tissue weight]',
             axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
             block=True,
             minor_ticks=False)
