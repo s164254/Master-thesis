@@ -2,6 +2,7 @@ import pandas as pd
 from os import path
 import fileutils as ft
 import plotutils
+import re
 
 
 
@@ -62,6 +63,9 @@ def plot_all():
     for fname, title in plot_files:
         df = pd.read_csv(ft.dnadata_filename('%s_2' % (fname,), 'csv'))
         df.rename( columns={SAMPLE_ID:DISPLAY_SAMPLE_ID, DNA_CONC_NG_MG:DISPLAY_DNA_CONC_NG_MG}, inplace=True)
+        df[DISPLAY_SAMPLE_ID] = df.apply(
+            lambda x: re.sub('\s+', '\n', x[DISPLAY_SAMPLE_ID]), axis=1)
+
         plotutils.dataframe_plot(
             df,
             lambda df: df.plot(
