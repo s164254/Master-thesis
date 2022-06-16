@@ -72,9 +72,10 @@ def plot_all():
                 x=DISPLAY_SAMPLE_ID, y=DISPLAY_DNA_CONC_NG_MG, kind='bar', rot=0, legend=False
             ),
             '%s %s' % (DISPLAY_DNA_CONC_NG_MG, title),
-            ylabel='DNA concentration [ng/mg lyophilized tissue weight]',
+            ylabel='DNA concentration [ng/mg tissue weight]',
             axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
             block=True,
+            fig_filename=ft.dnadata_filename('%s' % (fname,), 'png'),
             minor_ticks=False)
 
 
