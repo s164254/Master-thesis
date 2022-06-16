@@ -30,6 +30,9 @@ def relative_to_script_dir(_file_, fname, ext, data_path=''):
 def dnadata_filename(fname, ext='xlsx'):
     return relative_to_script_dir(__file__, fname, ext, DNA_DATA_PATH)
 
+def dnadata_chart_filename(fname):
+    return relative_to_script_dir(__file__, fname, '', path.join( DNA_DATA_PATH, 'chart'))
+
 
 def msdata_filename(fname, ext='xlsx'):
     return relative_to_script_dir(__file__, fname, ext, MS_DATA_PATH)

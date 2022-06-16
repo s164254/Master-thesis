@@ -75,7 +75,7 @@ def plot_all():
             ylabel='DNA concentration [ng/mg tissue weight]',
             axis_setup_func=lambda ax: ax.bar_label(ax.containers[0]),
             block=True,
-            fig_filename=ft.dnadata_filename('%s' % (fname,), 'png'),
+            fig_filename=ft.dnadata_chart_filename('%s.png' % (fname,)),
             minor_ticks=False)
 
 
