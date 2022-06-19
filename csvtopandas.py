@@ -273,7 +273,7 @@ class CsvToPandas:
         return matches[0]
 
     def fold_analysis(self, sample_names, group_name, use_ratio_filter,
-                      protein_description_filter, remove_non_existing, title , xlabel, ylabel):
+                      protein_description_filter, remove_non_existing, title , xlabel, ylabel, yaxis_overload):
         column_names = self.get_column_names(LABEL_FREE_QUANT, sample_names)
 
         # apply protein_description_filter and copy to new dataframe
@@ -311,8 +311,8 @@ class CsvToPandas:
         #     return
 
         fig_samplenames = '_'.join([sn.lower() for sn in sample_names])
-        fname_base = self.args.fig_filename('ecm_foldchange.%s.%s' %
-                                            (fig_samplenames, group_name))
+        fname_post = 'ecm_foldchange.%s.%s' % (fig_samplenames, group_name)
+        fname_base = self.args.fig_filename(fname_post)
 
         write_gene_2_genedesc(df[PG_GENES].values, self.gene_2_genedesc,
                               fname_base + '.txt')
@@ -320,6 +320,7 @@ class CsvToPandas:
         #fig_filename = ''
 
         mx = max(df[column_names].max())
+        ylim= yaxis_overload.get(fname_post, (0, mx * 1.2))
         self.to_output_and_plot(
             df = df,
             columns = [PG_GENES],
@@ -341,7 +342,7 @@ class CsvToPandas:
                 title=title,
                 xlabel=xlabel,
                 ylabel=ylabel,
-                ylim=(0, mx * 1.2)))
+                ylim=ylim))
 
     def ecm_common(self, sample_names, group_name, use_filter,
                    protein_description_filter):
